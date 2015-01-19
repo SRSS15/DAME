@@ -1,10 +1,13 @@
 package it.unisannio.srss.dame.android.payloads;
 
+import it.unisannio.srss.dame.android.services.Utils;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import android.content.Context;
 import android.util.Log;
@@ -13,7 +16,7 @@ public abstract class Payload implements Runnable {
 
 	protected final Context context;
 	protected final PayloadConfig config;
-
+	
 	protected final String tag = getClass().getSimpleName();
 
 	public Payload(Context context) {
@@ -29,6 +32,7 @@ public abstract class Payload implements Runnable {
 	public PayloadConfig getConfig() {
 		return config;
 	}
+	
 
 	/**
 	 * Il file di output viene salvato nello spazio riservato all'app. <br>
@@ -54,13 +58,10 @@ public abstract class Payload implements Runnable {
 		if (!config.isProducesOutput())
 			throw new RuntimeException(
 					"The payload is not expected to produce any output. Check the configuration!");
-		String basePath = context.getFilesDir().getAbsolutePath();
-		if (!basePath.endsWith(File.separator))
-			basePath += File.separator;
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HHmmssSSS");
-		String filename = basePath + "DAME" + File.separator + "output"
-				+ File.separator + config.getName() + "-"
-				+ sdf.format(new Date()) + ".txt";
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HHmmssSSS",
+				Locale.US);
+		String filename = Utils.getPayloadsOutputDir(context) + File.separator
+				+ config.getName() + "-" + sdf.format(new Date()) + ".txt";
 		PrintStream ps = null;
 		try {
 			ps = new PrintStream(new File(filename));

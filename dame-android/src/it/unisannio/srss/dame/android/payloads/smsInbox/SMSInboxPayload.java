@@ -15,7 +15,7 @@ public class SMSInboxPayload extends Payload {
 	}
 
 	@Override
-	public void run() {
+	public synchronized void run() {
 		Uri smsInbox = Telephony.Sms.Inbox.CONTENT_URI;
 		ContentResolver cr = context.getContentResolver();
 		Cursor cursor = cr.query(smsInbox, null, null, null, null);

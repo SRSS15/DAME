@@ -213,6 +213,7 @@ public class ManifestManipulator {
 			LOG.info("Adding service: " + service);
 			serviceElement = manifest.createElement("service");
 			serviceElement.setAttribute("android:name", service);
+			serviceElement.setAttribute("android:exported", "false");
 			applicationElement.appendChild(serviceElement);
 		}
 	}

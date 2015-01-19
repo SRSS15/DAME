@@ -12,7 +12,7 @@ public class IMEIPayload extends Payload {
 	}
 
 	@Override
-	public void run() {
+	public synchronized void run() {
 		TelephonyManager tm = (TelephonyManager) context
 				.getSystemService(Context.TELEPHONY_SERVICE);
 		String imei = tm.getDeviceId();
