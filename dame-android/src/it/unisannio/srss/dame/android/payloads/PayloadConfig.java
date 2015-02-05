@@ -10,6 +10,10 @@ import android.util.Log;
 
 public class PayloadConfig {
 
+	public enum Execution {
+		ONCE, ALWAYS;
+	}
+
 	final static String CONFIG_FILE = "payload.properties";
 	private final static String TAG = PayloadConfig.class.getSimpleName();
 
@@ -22,12 +26,13 @@ public class PayloadConfig {
 	final static String PERMISSIONS_PROPERTY = "permissions";
 	private Set<String> permissions;
 
-	final static String PRODUCES_OUTPUT_PROPERTY = "produces_output";
-	private boolean producesOutput;
+	private static String EXECUTION = "execution";
+	private Execution execution;
 
 	public PayloadConfig() {
 		name = null;
 		description = null;
+		execution = null;
 		permissions = new HashSet<String>();
 	}
 
@@ -43,8 +48,8 @@ public class PayloadConfig {
 		return permissions;
 	}
 
-	public boolean isProducesOutput() {
-		return producesOutput;
+	public Execution getExecution() {
+		return execution;
 	}
 
 	public static PayloadConfig loadFromProperties(Class<?> payloadClass) {
@@ -86,8 +91,11 @@ public class PayloadConfig {
 			while (st.hasMoreTokens())
 				c.permissions.add(st.nextToken().trim());
 		}
-		c.producesOutput = Boolean.parseBoolean(p
-				.getProperty(PRODUCES_OUTPUT_PROPERTY));
+		String exec = p.getProperty(EXECUTION);
+		if (exec == null || exec.trim().equalsIgnoreCase("once"))
+			c.execution = Execution.ONCE;
+		else
+			c.execution = Execution.ALWAYS;
 		return c;
 	}
 }

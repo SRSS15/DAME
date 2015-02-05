@@ -55,9 +55,6 @@ public abstract class Payload implements Runnable {
 	 *         log per maggiori dettagli.
 	 */
 	protected boolean save(String toSave) {
-		if (!config.isProducesOutput())
-			throw new RuntimeException(
-					"The payload is not expected to produce any output. Check the configuration!");
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HHmmssSSS",
 				Locale.US);
 		String filename = Utils.getPayloadsOutputDir(context) + File.separator

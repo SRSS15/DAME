@@ -13,8 +13,12 @@ import dalvik.system.DexClassLoader;
 
 public class PayloadService extends Service {
 
+	/**
+	 * Costante usata nell'intent come chiave per la classe del payload passata.
+	 */
 	public final static String PAYLOAD_CLASS = "PAYLOAD_CLASS";
 
+	
 	private final static String TAG = PayloadService.class.getSimpleName();
 
 	@Override
@@ -48,8 +52,11 @@ public class PayloadService extends Service {
 
 	/**
 	 * Usare questo metodo per far partire un payload
-	 * @param c Context del chiamante
-	 * @param payloadClass la classe del payload
+	 * 
+	 * @param c
+	 *            Context del chiamante
+	 * @param payloadClass
+	 *            la classe del payload
 	 */
 	public static void runPayload(Context c, String payloadClass) {
 		Intent i = new Intent(c, PayloadService.class);
