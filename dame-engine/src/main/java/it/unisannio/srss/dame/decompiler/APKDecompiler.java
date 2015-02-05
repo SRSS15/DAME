@@ -1,4 +1,4 @@
-package it.unisannio.srss.dame.decompailer;
+package it.unisannio.srss.dame.decompiler;
 
 import java.io.File;
 import java.io.FileNotFoundException;
