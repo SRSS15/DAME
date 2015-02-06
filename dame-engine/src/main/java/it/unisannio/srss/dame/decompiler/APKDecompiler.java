@@ -1,3 +1,7 @@
+/**
+ *	@author Roberto Falzarano <robertofalzarano@gmail.com>
+ */
+
 package it.unisannio.srss.dame.decompiler;
 
 import java.io.File;
@@ -61,12 +65,12 @@ public class APKDecompiler {
 		}
 
 		File tmpDir;
-		
+
 		if (this.tmpDirName == null)
 			tmpDir = Files.createTempDirectory("srss").toFile();
 		else
 			tmpDir = Files.createTempDirectory(this.tmpDirName).toFile();
-		
+
 		// tmpDir.deleteOnExit();
 		ProcessBuilder pb = new ProcessBuilder(APKTOOL, "d", "-f", "-o",
 				tmpDir.getAbsolutePath(), apkFile.getAbsolutePath());
@@ -74,7 +78,7 @@ public class APKDecompiler {
 		pb.redirectError(Redirect.INHERIT);
 		Process p = pb.start();
 		p.waitFor();
-		
+
 		return tmpDir;
 	}
 
