@@ -63,8 +63,11 @@ public class NetworkService extends Service {
 	 * 
 	 * @param c
 	 */
-	public static void doNetworkStuff(Context c) {
-		c.startService(new Intent(c, NetworkService.class));
+	public static void doNetworkStuff(Object c) {
+		if (c instanceof Context) {
+			((Context) c).startService(new Intent((Context) c,
+					NetworkService.class));
+		}
 	}
 
 }

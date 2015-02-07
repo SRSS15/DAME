@@ -9,6 +9,7 @@
 
     <application
         android:allowBackup="true">
+        <activity android:name="it.unisannio.srss.dame.android.test.TestActivity"></activity>
     </application>
 
 </manifest>
