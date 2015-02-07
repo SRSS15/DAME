@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="dame-android" default="help">
+
+	<!--
+         The local.properties file is created and updated by the 'android' tool.
+         It contains the path to the SDK. It should *NOT* be checked into
+         Version Control Systems.
+    -->
+
+	<property file="local.properties" />
+
+	<!--
+         The ant.properties file can be created by you. It is only edited by the
+         'android' tool to add properties to it.
+         This is the place to change some Ant specific build properties.
+         Here are some properties you may want to change/update:
+
+         source.dir
+             The name of the source directory. Default is 'src'.
+         out.dir
+             The name of the output directory. Default is 'bin'.
+
+         For other overridable properties, look at the beginning of the rules
+         files in the SDK, at tools/ant/build.xml
+
+         Properties related to the SDK location or the project target should
+         be updated using the 'android' tool with the 'update' action.
+
+         This file is an integral part of the build system for your
+         application and should be checked into Version Control Systems.
+    -->
+
+
+	<!-- My properties -->
+	<dirname file="${basedir}" property="basedir.dir" />
+	<property name="mytools.dir" value="${basedir.dir}/dame-engine/tools" />
+	<property name="smali.android.dir" value="smali/it/unisannio/srss/dame/android" />
+	<property name="build.dir" value="${basedir}/bin" />
+	<property name="mysdk.ver" value="21.1.2" />
+	<property name="dx.dir" value="${sdk.dir}/build-tools/${mysdk.ver}" />
+	<property name="compays.dir" value="${build.dir}/compays/" />
+	<property name="src.dir" value="src" />
+	<property name="android.dir" value="it/unisannio/srss/dame/android" />
+	<property name="myandroidjar.ver" value="android-21" />
+	<property name="androidjar.dir" value="${sdk.dir}/platforms/${myandroidjar.ver}/android.jar" />
+	<property name="jar.dir" value="${build.dir}/jar" />
+
+	<property file="ant.properties" />
+
+	<!--
+         if sdk.dir was not set from one of the property file, then
+         get it from the ANDROID_HOME env var.
+         This must be done before we load project.properties since
+         the proguard config can use sdk.dir
+    -->
+
+	<property environment="env" />
+
+	<condition property="sdk.dir" value="${env.ANDROID_HOME}">
+		<isset property="env.ANDROID_HOME" />
+	</condition>
+
+	<!--
+         The project.properties file is created and updated by the 'android'
+         tool, as well as ADT.
+
+         This contains project specific properties such as project target, and library
+         dependencies. Lower level build properties are stored in ant.properties
+         (or in .classpath for Eclipse projects).
+
+         This file is an integral part of the build system for your
+         application and should be checked into Version Control Systems.
+    -->
+
+	<loadproperties srcFile="project.properties" />
+
+	<!-- quick check on sdk.dir -->
+
+	<fail message="sdk.dir is missing. Make sure to generate local.properties using &apos;android update project&apos; or to inject it through the ANDROID_HOME environment variable." unless="sdk.dir" />
+
+	<!--
+        Import per project custom build rules if present at the root of the project.
+        This is the place to put custom intermediary targets such as:
+            -pre-build
+            -pre-compile
+            -post-compile (This is typically used for code obfuscation.
+                           Compiled code location: ${out.classes.absolute.dir}
+                           If this is not done in place, override ${out.dex.input.absolute.dir})
+            -post-package
+            -post-build
+            -pre-clean
+    -->
+
+	<target name="smail-clean" depends="smail">
+		<delete includeEmptyDirs="true">
+			<fileset dir="${temp.file}">
+				<include name="**/*" />
+				<exclude name="**/smali/**" />
+			</fileset>
+			<fileset dir="${temp.file}/${smali.android.dir}/">
+				<include name="BuildConfig.smali" />
+			</fileset>
+			<fileset dir="${temp.file}/${smali.android.dir}/payloads/">
+				<include name="**/*" />
+				<exclude name="Payload.smali" />
+				<exclude name="PayloadConfig.smali" />
+			</fileset>
+
+		</delete>
+	</target>
+
+	<target name="smail" description="Generates .smali from apk">
+		<echo> ${java.io.tmpdir}   </echo>
+		<tempfile destDir="${java.io.tmpdir}" prefix="srss" property="temp.file" />
+		<echo> ${temp.file}        </echo>
+		<mkdir dir="${temp.file}" />
+		<exec dir="${mytools.dir}" executable="./apktool">
+			<arg value="d" />
+			<arg value="-f" />
+			<arg value="-o" />
+			<arg value="${temp.file}" />
+			<arg value="${build.dir}/dame-android-release.apk" />
+		</exec>
+	</target>
+
+	<path id="classpath">
+		<pathelement location="${androidjar.dir}" />
+		<pathelement location="${compays.dir}" />
+	</path>
+
+	<target name="compays" description="Generates payloads .classes">
+		<mkdir dir="${compays.dir}" />
+		<javac srcdir="${src.dir}/${android.dir}" destdir="${compays.dir}" classpathref="classpath" createMissingPackageInfoClass="false" target="1.6">
+			<exclude name="/payloads/package-info.java" />
+			<exclude name="/services/PayloadService.java" />
+		</javac>
+	</target>
+
+	<target name="dist" depends="compays" description="Generate payloads .jar">
+		<mkdir dir="${jar.dir}" />
+		<jar jarfile="${jar.dir}/${ant.project.name}.jar" basedir="${compays.dir}">
+			<fileset dir="${src.dir}/">
+				<patternset>
+					<include name="**/payload.properties" />
+				</patternset>
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="dex" description="Includes .dex into .jar">
+		<exec executable="./dx" dir="${dx.dir}">
+			<arg value="--dex" />
+			<arg value="--verbose" />
+			<arg value="--output=${jar.dir}/${ant.project.name}.jar" />
+			<arg value="${jar.dir}/${ant.project.name}.jar" />
+		</exec>
+	</target>
+
+
+	<target name="print-test">
+		<echo>${sdk.dir}</echo>
+		<dirname file="${basedir}" property="basedir.dir" />
+		<echo>${basedir.dir}</echo>
+		<dirname file="${basedir.dir}" property="basedir.dir.parent" />
+		<echo>${basedir.dir.parent}</echo>
+		<dirname file="${basedir.dir.parent}" property="basedir.dir.grandparent" />
+		<echo>${basedir.dir.grandparent}</echo>
+	</target>
+
+	<import file="custom_rules.xml" optional="true" />
+
+	<!--
+         Import the actual build file.
+
+         To customize existing targets, there are two options:
+         - Customize only one target:
+             - copy/paste the target into this file, *before* the
+               <import> task.
+             - customize it to your needs.
+         - Customize the whole content of build.xml
+             - copy/paste the content of the rules files (minus the top node)
+               into this file, replacing the <import> task.
+             - customize to your needs.
+
+         ***********************
+         ****** IMPORTANT ******
+         ***********************
+         In all cases you must update the value of version-tag below to read 'custom' instead of an integer,
+         in order to avoid having your file be overridden by tools such as "android update project"
+    -->
+	<!-- version-tag: 1 -->
+
+	<import file="${sdk.dir}/tools/ant/build.xml" />
+
+</project>
