@@ -69,7 +69,7 @@ def dictToJson(permissionDictionary):
 
     for key in keys:
         i += 1
-        toReturn += "\n\t{\"type\":\""+key+"\",\"usage-point\":["
+        toReturn += "\n\t{\"type\":\""+key+"\",\"usage-points\":["
         #altro contatore per le virgole
         k=0
 
@@ -110,10 +110,11 @@ else:
     #variabile che rappresenta il file dex dopo essere stato analizzato
     dexAnalyzed = analysis.uVMAnalysis(dexFile)
 
-    # print a.show()
-    # print "package name " + a.get_package()
-    # print a.get_permissions()
-    # print "\n"
+    #print a.show()
+    #print "package name " + a.get_package()
+    #print a.get_permissions()
+    analysis.show_Permissions(dexAnalyzed)
+    #print "\n"
 
     # mostra dove vengono usati i permessi
     permissions = dexAnalyzed.get_permissions([])
