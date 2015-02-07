@@ -28,6 +28,10 @@ public abstract class Payload implements Runnable {
 							+ getClass().getCanonicalName()
 							+ ". See logs for details.");
 	}
+	
+	public Payload() {
+		this(null);
+	}
 
 	public PayloadConfig getConfig() {
 		return config;
