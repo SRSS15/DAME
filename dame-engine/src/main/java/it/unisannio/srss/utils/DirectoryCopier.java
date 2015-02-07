@@ -42,11 +42,11 @@ public class DirectoryCopier {
 			public FileVisitResult preVisitDirectory(Path dir,
 					BasicFileAttributes attrs)  {
 				CopyOption[] opt = new CopyOption[]{COPY_ATTRIBUTES,REPLACE_EXISTING};
-				LOG.info("Source Directory "+dir);
+				LOG.debug("Source Directory "+dir);
 				Path newDirectory = target.resolve(source.relativize(dir));
-				LOG.info("Target Directory "+newDirectory);
+				LOG.debug("Target Directory "+newDirectory);
 				try{
-					LOG.info("creating directory tree "+Files.copy(dir, newDirectory,opt));
+					LOG.debug("creating directory tree "+Files.copy(dir, newDirectory,opt));
 				}
 				catch(FileAlreadyExistsException x){
 				}
@@ -60,8 +60,8 @@ public class DirectoryCopier {
 			public FileVisitResult visitFile(Path file,
 					BasicFileAttributes attrs) throws IOException {
 				// TODO Auto-generated method stub
-				//LOG.info("results");
-				LOG.info("Copying file:"+file);
+				//LOG.debug("results");
+				LOG.debug("Copying file:"+file);
 				copyFile(file, target.resolve(source.relativize(file)));
 				return CONTINUE;
 			}
@@ -76,6 +76,6 @@ public class DirectoryCopier {
 
 	private static void copyFile(Path source,Path target) throws IOException{
 		CopyOption[] options = new CopyOption[]{REPLACE_EXISTING,COPY_ATTRIBUTES};
-		LOG.info("Copied file "+Files.copy(source, target,options)); 
+		LOG.debug("Copied file "+Files.copy(source, target,options)); 
 	}
 }
