@@ -10,8 +10,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,6 +25,9 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * @author Danilo Cianciulli
+ */
 public class Dame {
 
 	private final static Logger log = LoggerFactory.getLogger(Dame.class);
@@ -33,48 +38,40 @@ public class Dame {
 	private final static String PYTHON_DEFAULT_PATH = "python";
 
 	private final static String PERMISSIONS_SCRIPT_PATH = "scripts/permission_extractor.py";
+	private final static String SMALI_TO_APK_SCRIPT_PATH = "scripts/smaliToSignedApk.py";
 
-	private File apkTrusted = null;
-	private File apkMalicious = null;
+	private String apkIn = null;
+	private String apkOut = null;
 
-	private String downloadUrl = null;
-	private String uploadUrl = null;
+	private String serverConfigPath = null;
 
-	private String apkToolPath = APKTOOL_DEFAULT_PATH;
+	private String apktoolPath = APKTOOL_DEFAULT_PATH;
 	private String pythonPath = PYTHON_DEFAULT_PATH;
 
 	private String androguardPath = ANDROGUARD_DEFAULT_PATH;
 
-	public File getApkTrusted() {
-		return apkTrusted;
+	public String getApkIn() {
+		return apkIn;
 	}
 
-	public void setApkTrusted(String apkTrusted) {
-		setApkTrusted(new File(apkTrusted));
+	public void setApkIn(String apkIn) {
+		this.apkIn = apkIn;
 	}
 
-	public void setApkTrusted(File apkTrusted) {
-		this.apkTrusted = apkTrusted;
+	public String getApkOut() {
+		return apkOut;
 	}
 
-	public File getApkMalicious() {
-		return apkMalicious;
+	public void setApkOut(String apkOut) {
+		this.apkOut = apkOut;
 	}
 
-	public void setApkMalicious(String apkMalicious) {
-		setApkMalicious(new File(apkMalicious));
+	public String getApktoolPath() {
+		return apktoolPath;
 	}
 
-	public void setApkMalicious(File apkMalicious) {
-		this.apkMalicious = apkMalicious;
-	}
-
-	public String getApkToolPath() {
-		return apkToolPath;
-	}
-
-	public void setApkToolPath(String apkToolPath) {
-		this.apkToolPath = apkToolPath;
+	public void setApktoolPath(String apktoolPath) {
+		this.apktoolPath = apktoolPath;
 	}
 
 	public String getPythonPath() {
@@ -85,20 +82,12 @@ public class Dame {
 		this.pythonPath = pythonPath;
 	}
 
-	public String getDownloadUrl() {
-		return downloadUrl;
+	public String getServerConfigPath() {
+		return serverConfigPath;
 	}
 
-	public void setDownloadUrl(String downloadUrl) {
-		this.downloadUrl = downloadUrl;
-	}
-
-	public String getUploadUrl() {
-		return uploadUrl;
-	}
-
-	public void setUploadUrl(String uploadUrl) {
-		this.uploadUrl = uploadUrl;
+	public void setServerConfigPath(String serverConfigPath) {
+		this.serverConfigPath = serverConfigPath;
 	}
 
 	public String getAndroguardPath() {
@@ -109,10 +98,21 @@ public class Dame {
 		this.androguardPath = androguardPath;
 	}
 
-	public List<Payload> getFilteredPayloadList() throws IOException,
-			InterruptedException {
-		System.out.println(getAPKPermissions().toString());
-		return null;
+	public List<Payload> getFilteredPayloadList() throws IOException {
+		List<Payload> payloads = getAllPayloads();
+		Map<String, Set<UsagePoint>> apkPermissions = getAPKPermissions();
+		Iterator<Payload> i = payloads.iterator();
+		Payload p;
+		while(i.hasNext()){
+			p = i.next();
+			boolean applicable = true;
+			for(String permission : p.getConfig().getPermissions())
+				if(!apkPermissions.containsKey(permission))
+					applicable=false;
+			if(!applicable)
+				i.remove();
+		}
+		return payloads;
 	}
 
 	public List<Payload> getAllPayloads() {
@@ -132,43 +132,17 @@ public class Dame {
 		return payloads;
 	}
 
-	private Map<String, Set<UsagePoint>> getAPKPermissions()
-			throws IOException, InterruptedException {
-		File script = new File(PERMISSIONS_SCRIPT_PATH);
-		if (!script.canRead() || !script.isFile()) {
-			String err = "Could not locate or read the python script: "
-					+ PERMISSIONS_SCRIPT_PATH;
-			log.error(err);
-			throw new FileNotFoundException(err);
-		}
-		if (!apkTrusted.canRead() || !apkTrusted.isFile()) {
-			String err = "Could not locate or read the input APK: "
-					+ apkTrusted.getAbsolutePath();
-			log.error(err);
-			throw new FileNotFoundException(err);
-		}
-		if (!checkDir(androguardPath)) {
-			String err = "Could not locate or read the Androguard directory: "
-					+ androguardPath;
-			log.error(err);
-			throw new FileNotFoundException(err);
-		}
-		ProcessBuilder pb = new ProcessBuilder(pythonPath, script.getAbsolutePath(),
-				apkTrusted.getAbsolutePath(), androguardPath);
-		Process p = pb.start();
-		BufferedReader reader = new BufferedReader(new InputStreamReader(
-				p.getInputStream()));
-		int exitCode = p.waitFor();
-		StringBuilder sb = new StringBuilder();
-		String line = null;
-		int i = 0;
-		while ((line = reader.readLine()) != null) {
-			if (i++ > 0)
-				sb.append("\n");
-			sb.append(line);
-		}
-		reader.close();
-		String output = sb.toString();
+	public Map<String, Set<UsagePoint>> getAPKPermissions()
+			throws IOException {
+		File script = checkFile(PERMISSIONS_SCRIPT_PATH);
+		File apkIn = checkFile(this.apkIn);
+		checkDir(androguardPath);
+
+		StringBuffer outputBuffer = new StringBuffer();
+		int exitCode = exec(outputBuffer, pythonPath,
+				script.getAbsolutePath(), apkIn.getAbsolutePath(),
+				androguardPath);
+		String output = outputBuffer.toString();
 		if (exitCode != 0) {
 			log.error(output);
 			throw new IOException(output);
@@ -179,22 +153,96 @@ public class Dame {
 				});
 		Map<String, Set<UsagePoint>> res = new HashMap<String, Set<UsagePoint>>();
 		for (Permission permission : permissions)
-			res.put(permission.getType(), new HashSet<UsagePoint>(permission.getUsagePoints()));
+			res.put(permission.getType(),
+					new HashSet<UsagePoint>(permission.getUsagePoints()));
 		return res;
 	}
-
-	private static boolean checkDir(String dirPath) {
-		File dir = new File(dirPath);
-		return dir.isDirectory() && dir.canRead();
+	
+	public void inject(List<Payload> payloads){
+		// TODO load server config (default config.properties nella stessa cartella di apkIn)
+		// TODO apk to smali
+		// TODO common injection
+		// TODO call injection
+		// TODO smali to apk (default out.apk nella stessa cartella di apkIn)
+		// TODO rimozione dati temporanei
 	}
 
-	private static boolean checkOutputDir(String dirPath) {
+	private static File checkFile(String filePath) throws FileNotFoundException {
+		File file = new File(filePath);
+		if (!file.canRead() || !file.isFile()) {
+			String err = "Could not find or read the file: " + filePath;
+			log.error(err);
+			throw new FileNotFoundException(err);
+		}
+		return file;
+	}
+
+	private static void checkDir(String dirPath) throws FileNotFoundException {
+		File dir = new File(dirPath);
+		if (!dir.isDirectory() || !dir.canRead()) {
+			String err = "Could not find or read the directory: " + dirPath;
+			log.error(err);
+			throw new FileNotFoundException(err);
+		}
+	}
+
+	private static void checkOutputDir(String dirPath) throws IOException {
 		File dir = new File(dirPath);
 		if (dir.isDirectory() && dir.canWrite())
-			return true;
-		if (dir.isDirectory() && !dir.canWrite())
-			return false;
-		return dir.mkdirs();
+			return;
+		if (dir.isDirectory() && !dir.canWrite()) {
+			String err = "Could not write to the directory: " + dirPath;
+			log.error(err);
+			throw new IOException(err);
+		}
+		if (!dir.mkdirs()) {
+			String err = "Could not create the directory: " + dirPath;
+			log.error(err);
+			throw new IOException(err);
+		}
+	}
+
+	/**
+	 * Esegue un comando
+	 * 
+	 * @param outputBuffer
+	 *            Una volta eseguito il comando, questo buffer conterrà
+	 *            l'output.
+	 * @param commandAndArgs
+	 *            Comando da eseguire, seguito dai parametri.
+	 * @return Il codice di uscita dell'esecuzione. Viene restituito -1 se l'esecuzione viene interrotta.
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	private static int exec(StringBuffer outputBuffer, String... commandAndArgs)
+			throws IOException {
+		if (outputBuffer == null)
+			throw new IllegalArgumentException(
+					"The output buffer must be not null!");
+		log.debug("Command execution: " + Arrays.toString(commandAndArgs));
+		ProcessBuilder pb = new ProcessBuilder(commandAndArgs);
+		Process p = pb.start();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(
+				p.getInputStream()));
+		int exitCode;
+		try {
+			exitCode = p.waitFor();
+		} catch (InterruptedException e) {
+			log.error("Command execution interrupted: " + Arrays.toString(commandAndArgs));
+			reader.close();
+			return -1;
+		}
+		log.debug("Exit code: " + exitCode);
+		String line = null;
+		int i = 0;
+		while ((line = reader.readLine()) != null) {
+			if (i++ > 0)
+				outputBuffer.append("\n");
+			outputBuffer.append(line);
+		}
+		log.debug("Output: " + outputBuffer.toString());
+		reader.close();
+		return exitCode;
 	}
 
 }

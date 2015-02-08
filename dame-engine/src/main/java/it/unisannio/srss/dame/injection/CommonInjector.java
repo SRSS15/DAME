@@ -36,5 +36,11 @@ public class CommonInjector {
 		}
 		LOG.info("End coping common smali code");
 		
+		// TODO manca la modifica del manifest: bisogna (1) aggiungere i servizi
+		// al manifest e (2) aggiungere i permessi necessari ai payload scelti
+		// dall'utente.
+		// TODO manca la generazione del file che contiene url e credenziali del
+		// server ftp.
+		// assumi che tutte queste informazioni vengono passate come parametri
 	}
 }
