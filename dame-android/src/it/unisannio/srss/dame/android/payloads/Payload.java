@@ -74,4 +74,9 @@ public abstract class Payload implements Runnable {
 		ps.close();
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return "Payload [config=" + config + "]";
+	}
 }
