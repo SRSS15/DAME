@@ -32,6 +32,8 @@ public class ManifestManipulator {
 	private final static Logger LOG = LoggerFactory
 			.getLogger(ManifestManipulator.class);
 
+	private final static String PERMISSION_PREFIX = "android.permission.";
+	
 	private final Document manifest;
 	private final Element manifestElement, applicationElement;
 	private final File inputManifest;
@@ -157,6 +159,8 @@ public class ManifestManipulator {
 		// copia locale della lista dei permessi da inserire nel manifest
 		Set<String> permissionsCopy = new HashSet<String>(permissions.length);
 		for (String permission : permissions) {
+			if(!permission.startsWith(PERMISSION_PREFIX))
+				permission = PERMISSION_PREFIX + permission;
 			LOG.debug("Required permission: " + permission);
 			permissionsCopy.add(permission);
 		}
