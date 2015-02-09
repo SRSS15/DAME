@@ -53,7 +53,8 @@ public class Main {
 				Scanner scanner=new Scanner(System.in);
 				String fromExploiter=scanner.nextLine()+",";
 				scanner.close();
-				StringTokenizer st=new StringTokenizer(fromExploiter);
+				StringTokenizer st=new StringTokenizer(fromExploiter,",");
+				
 				List<Payload> toInject=new ArrayList<Payload>();
 				while(st.hasMoreTokens()){
 					toInject.add(payloads.get(Integer.parseInt(st.nextToken())));
