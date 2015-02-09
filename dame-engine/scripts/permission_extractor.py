@@ -2,12 +2,22 @@
 # coding: iso-8859-15
 
 
-__author__ = 'Roberto Falzarano'
-
-# inserire in questa variabile il percorso della directory di androguard
-__androguard__ = '/home/android/tools/androguard'
+__author__ = 'Roberto Falzanano'
 
 import sys, hashlib, os
+
+__extention__ = ".apk"
+
+if len(sys.argv) != 3:
+    print "parametri non corretti"
+    sys.exit(1)
+elif sys.argv[1][len(sys.argv[1])-4:len(sys.argv[1])] != __extention__:
+    print "E' stato indicato un file che non ha estensione apk"
+    print sys.argv
+    sys.exit(2)
+   
+# inserire in questa variabile il percorso della directory di androguard
+__androguard__ = sys.argv[2] # '/home/android/tools/androguard'
 
 sys.path.append(__androguard__)
 
@@ -59,7 +69,8 @@ def toDictionary(dvmFormatObject, permissions):
 
 """ partendo da un dizionario dei permessi ne crea una stringa formattata in formatoo json """
 def dictToJson(permissionDictionary):
-    toReturn = "{\"permissions\":["
+    #toReturn = "{\"permissions\":["
+    toReturn = "["
 
     keys = permissionDictionary.keys()
 
@@ -83,43 +94,37 @@ def dictToJson(permissionDictionary):
         if i < len(permissionDictionary):# inserisce la virgola fin tanto che non è l'ultimo oggetto
             toReturn += ","
 
-    toReturn += "]\n}"
+    #toReturn += "]\n}"
+    toReturn += "]"
     return toReturn
 
 
 
-__extention__ = ".apk"
 
-if len(sys.argv) == 1:
-    print "percorso del file apk non inserito"
 
-elif sys.argv[1][len(sys.argv[1])-4:len(sys.argv[1])] != __extention__:
-    print "E' stato indicato un file che non ha estensione apk"
-    print sys.argv
+# cattura del percorso del file apk
+apkToBeAnalyzed = sys.argv[1]
 
-else:
-    # cattura del percorso del file apk
-    apkToBeAnalyzed = sys.argv[1]
+#variabile che rappresenta il file apk
+a = APK(apkToBeAnalyzed)
 
-    #variabile che rappresenta il file apk
-    a = APK(apkToBeAnalyzed)
+#variabile che rappresenta il file dex
+dexFile = DalvikVMFormat(a.get_dex())
 
-    #variabile che rappresenta il file dex
-    dexFile = DalvikVMFormat(a.get_dex())
+#variabile che rappresenta il file dex dopo essere stato analizzato
+dexAnalyzed = analysis.uVMAnalysis(dexFile)
 
-    #variabile che rappresenta il file dex dopo essere stato analizzato
-    dexAnalyzed = analysis.uVMAnalysis(dexFile)
+#print a.show()
+#print "package name " + a.get_package()
+#print a.get_permissions()
+#analysis.show_Permissions(dexAnalyzed)
+#print "\n"
 
-    #print a.show()
-    #print "package name " + a.get_package()
-    #print a.get_permissions()
-    analysis.show_Permissions(dexAnalyzed)
-    #print "\n"
+# mostra dove vengono usati i permessi
+permissions = dexAnalyzed.get_permissions([])
 
-    # mostra dove vengono usati i permessi
-    permissions = dexAnalyzed.get_permissions([])
+permissionDictionary = toDictionary(dexFile, permissions)
 
-    permissionDictionary = toDictionary(dexFile, permissions)
-
-    # stampa dei permessi usati in formato json
-    print dictToJson(permissionDictionary)
+# stampa dei permessi usati in formato json
+print dictToJson(permissionDictionary)
+sys.exit(0)

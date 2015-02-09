@@ -26,4 +26,5 @@ public class Permission {
 	public void setUsagePoints(List<UsagePoint> usagePoints) {
 		this.usagePoints = usagePoints;
 	}
+	
 }

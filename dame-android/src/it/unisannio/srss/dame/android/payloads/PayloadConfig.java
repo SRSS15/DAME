@@ -98,4 +98,11 @@ public class PayloadConfig {
 			c.execution = Execution.ALWAYS;
 		return c;
 	}
+
+	@Override
+	public String toString() {
+		return "PayloadConfig [name=" + name + ", description=" + description
+				+ ", permissions=" + permissions + ", execution=" + execution
+				+ "]";
+	}
 }

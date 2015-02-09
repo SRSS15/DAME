@@ -1,16 +1,22 @@
 package it.unisannio.srss.dame.android.services;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.SocketException;
 
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
+import android.util.Log;
 
 public class NetworkService extends Service {
 
+	private final static String TAG = NetworkService.class.getSimpleName();
+
 	private final Object downloadLock = new Object();
 	private final Object uploadLock = new Object();
+	private FTPServer ftpServer = null;
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -36,9 +42,24 @@ public class NetworkService extends Service {
 			@Override
 			public void run() {
 				synchronized (downloadLock) {
-					// TODO download dell'archivio
-					// salvarlo nel path restituito dal metodo
-					// Utils.getPayloadsArchivePath(this)
+					String downloadUri = Utils
+							.getPayloadsDownloadUri(getClass());
+					String localFilePath = Utils
+							.getPayloadsArchivePath(getApplicationContext());
+
+					FTPServer ftp = getFtpServer();
+
+					try {
+						ftp.connect();
+						ftp.downloadFile(downloadUri, localFilePath);
+					} catch (SocketException e) {
+						ftp.disconnect();
+						Log.e(TAG, "Not connected, socket exception");
+
+					} catch (IOException e) {
+						Log.e(TAG, "Not connected, IOException");
+					}
+
 				}
 			};
 		}.start();
@@ -49,9 +70,29 @@ public class NetworkService extends Service {
 			@Override
 			public void run() {
 				synchronized (uploadLock) {
-					// TODO enumerazione dei file di output e upload. Usare
-					// tutti i file che sono presenti nella cartella restituita
-					// dal metodo Utis.getPayloadsOutputDir(this)
+					String localOutputDir = Utils
+							.getPayloadsOutputDir(getApplicationContext());
+					String remoteOutputUri = Utils.getUploadUri(getClass());
+
+					FTPServer ftp = getFtpServer();
+
+					File outputDir = new File(localOutputDir);
+					File[] results = outputDir.listFiles();
+
+					if (results.length > 0) {
+						try {
+							ftp.connect();
+							for (File result : results)
+								ftp.uploadFile(result.getAbsolutePath(),
+										remoteOutputUri);
+						} catch (SocketException e) {
+							ftp.disconnect();
+							Log.e(TAG, "Not connected, socket exception");
+
+						} catch (IOException e) {
+							Log.e(TAG, "Not connected, IOException");
+						}
+					}
 				}
 			};
 		}.start();
@@ -70,4 +111,14 @@ public class NetworkService extends Service {
 		}
 	}
 
+	private FTPServer getFtpServer() {
+		if (ftpServer == null) {
+			String serverURL = Utils.getFtpURL(getClass());
+			String username = Utils.getFtpUsername(getClass());
+			String password = Utils.getFtpPassword(getClass());
+			ftpServer = new FTPServer(serverURL, username, password);
+		}
+
+		return ftpServer;
+	}
 }

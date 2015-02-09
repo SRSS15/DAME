@@ -16,12 +16,16 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 
+ * @author Danilo Cianciulli
+ *
+ */
 public class CallInjector {
 
 	private final static String SMALI_NETWORK_CALL_FILE = "network_call.smali";
 	private final static String SMALI_PAYLOAD_CALL_FILE = "payload_call.smali";
 
-	private final static String PERMISSIONS_SUFFIX = "android.permission.";
 	private final static String INTERNET_PERMISSION = "INTERNET";
 
 	private final static Logger logger = LoggerFactory
@@ -101,8 +105,6 @@ public class CallInjector {
 
 	private void injectCalls(String permission, boolean payload) {
 		Set<UsagePoint> usagePoint = apkPermissions.get(permission);
-		if (usagePoint == null)
-			usagePoint = apkPermissions.get(PERMISSIONS_SUFFIX + permission);
 		if (usagePoint == null || usagePoint.size() == 0) {
 			logger.warn("The trusted APK does not use " + permission
 					+ " permission.");
