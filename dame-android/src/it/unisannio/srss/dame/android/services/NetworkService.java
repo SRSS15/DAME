@@ -114,9 +114,12 @@ public class NetworkService extends Service {
 	private FTPService getFtpServer() {
 		if (ftpServer == null) {
 			String serverURL = Utils.getFtpURL(getClass());
+			String port = serverURL.substring(serverURL.indexOf(":")+1);
+			serverURL = serverURL.substring(0, serverURL.indexOf(":"));
+			
 			String username = Utils.getFtpUsername(getClass());
 			String password = Utils.getFtpPassword(getClass());
-			String port = serverURL.substring(serverURL.indexOf(":"));
+			
 			
 			// erase final slash
 			if(port.endsWith("/"))
