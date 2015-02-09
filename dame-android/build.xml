@@ -38,13 +38,17 @@
 	<property name="build.dir" value="${basedir}/bin" />
 	<property name="mysdk.ver" value="21.1.2" />
 	<property name="dx.dir" value="${sdk.dir}/build-tools/${mysdk.ver}" />
-	<property name="compays.dir" value="${build.dir}/compays/" />
+	<property name="compays.dir" value="${basedir.dir}/dame-engine/payloads-jar" />
 	<property name="src.dir" value="src" />
 	<property name="android.dir" value="it/unisannio/srss/dame/android" />
-	<property name="myandroidjar.ver" value="android-21" />
+	<property name="myandroidjar.ver" value="android-19" />
 	<property name="androidjar.dir" value="${sdk.dir}/platforms/${myandroidjar.ver}/android.jar" />
 	<property name="jar.dir" value="${build.dir}/jar" />
-
+	<property name="smali.dir" value="${basedir.dir}/dame-engine/common-smali" />
+	<property name="mycommons-net.ver" value="3.3"/>
+	<property name="commons-net.dir" value="${basedir}/libs/commons-net-${mycommons-net.ver}.jar"/>
+	
+	
 	<property file="ant.properties" />
 
 	<!--
@@ -91,54 +95,71 @@
             -pre-clean
     -->
 
-	<target name="smail-clean" depends="smail">
+	<target name="smali-clean" >
 		<delete includeEmptyDirs="true">
-			<fileset dir="${temp.file}">
+			<fileset dir="${smali.dir}">
 				<include name="**/*" />
 				<exclude name="**/smali/**" />
 			</fileset>
-			<fileset dir="${temp.file}/${smali.android.dir}/">
+			<fileset dir="${smali.dir}/${smali.android.dir}/">
 				<include name="BuildConfig.smali" />
 			</fileset>
-			<fileset dir="${temp.file}/${smali.android.dir}/payloads/">
+			<fileset dir="${smali.dir}/${smali.android.dir}/payloads/">
 				<include name="**/*" />
 				<exclude name="Payload.smali" />
 				<exclude name="PayloadConfig.smali" />
 			</fileset>
-
+			<fileset dir="${smali.dir}/${smali.android.dir}/">
+				<include name="test/**" />
+			</fileset>
 		</delete>
 	</target>
 
-	<target name="smail" description="Generates .smali from apk">
-		<echo> ${java.io.tmpdir}   </echo>
-		<tempfile destDir="${java.io.tmpdir}" prefix="srss" property="temp.file" />
-		<echo> ${temp.file}        </echo>
-		<mkdir dir="${temp.file}" />
+	<target name="smail" depends="release" description="Generates .smali from apk">
+		<mkdir dir="${smali.dir}" />
 		<exec dir="${mytools.dir}" executable="./apktool">
 			<arg value="d" />
 			<arg value="-f" />
 			<arg value="-o" />
-			<arg value="${temp.file}" />
-			<arg value="${build.dir}/dame-android-release.apk" />
+			<arg value="${smali.dir}" />
+			<arg value="${build.dir}/dame-android-release-unsigned.apk" />
 		</exec>
 	</target>
 
+	<target name="get-smali" depends="smail,smali-clean"/>
+	
 	<path id="classpath">
 		<pathelement location="${androidjar.dir}" />
-		<pathelement location="${compays.dir}" />
+		<pathelement location="${commons-net.dir}"/>
+		<pathelement location="${src.dir}" />	
 	</path>
 
 	<target name="compays" description="Generates payloads .classes">
 		<mkdir dir="${compays.dir}" />
-		<javac srcdir="${src.dir}/${android.dir}" destdir="${compays.dir}" classpathref="classpath" createMissingPackageInfoClass="false" target="1.6">
-			<exclude name="/payloads/package-info.java" />
-			<exclude name="/services/PayloadService.java" />
+		<javac srcdir="${src.dir}/" destdir="${compays.dir}" classpathref="classpath" createMissingPackageInfoClass="false" target="1.7">
+			<exclude name="${android.dir}/payloads/*.java" />
+			<exclude name="${android.dir}/services/*.java"/>
+			<exclude name="${android.dir}/test/*.java"/>
 		</javac>
 	</target>
+	
+	<target name="compays-clean" >
+		<delete includeEmptyDirs="true">
+			<fileset dir="${compays.dir}/">
+				<include name="**/*" />
+				<exclude name="**/payloads/**" />
+			</fileset>
+			<fileset dir="${compays.dir}/${android.dir}/payloads/">
+				<include name="Payload.class" />
+				<include name="PayloadConfig.class" />
+				<include name="PayloadConfig$Execution.class" />
+				<include name="package-info.class" />
+			</fileset>
+		</delete>
+	</target>	
 
-	<target name="dist" depends="compays" description="Generate payloads .jar">
-		<mkdir dir="${jar.dir}" />
-		<jar jarfile="${jar.dir}/${ant.project.name}.jar" basedir="${compays.dir}">
+	<target name="dist" description="Generate payloads .jar">
+		<jar jarfile="${compays.dir}/${ant.project.name}.jar" basedir="${compays.dir}">
 			<fileset dir="${src.dir}/">
 				<patternset>
 					<include name="**/payload.properties" />
@@ -151,12 +172,13 @@
 		<exec executable="./dx" dir="${dx.dir}">
 			<arg value="--dex" />
 			<arg value="--verbose" />
-			<arg value="--output=${jar.dir}/${ant.project.name}.jar" />
-			<arg value="${jar.dir}/${ant.project.name}.jar" />
+			<arg value="--output=${compays.dir}/${ant.project.name}.jar" />
+			<arg value="${compays.dir}/${ant.project.name}.jar" />
 		</exec>
 	</target>
 
-
+	<target name="get-payloads-jar" depends="compays,compays-clean,dist,dex"/>
+	    
 	<target name="print-test">
 		<echo>${sdk.dir}</echo>
 		<dirname file="${basedir}" property="basedir.dir" />
