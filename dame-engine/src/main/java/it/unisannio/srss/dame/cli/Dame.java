@@ -3,10 +3,10 @@ package it.unisannio.srss.dame.cli;
 import it.unisannio.srss.dame.android.payloads.Payload;
 import it.unisannio.srss.dame.injection.Permission;
 import it.unisannio.srss.dame.injection.UsagePoint;
+import it.unisannio.srss.utils.FileUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -134,9 +134,9 @@ public class Dame {
 
 	public Map<String, Set<UsagePoint>> getAPKPermissions()
 			throws IOException {
-		File script = checkFile(PERMISSIONS_SCRIPT_PATH);
-		File apkIn = checkFile(this.apkIn);
-		checkDir(androguardPath);
+		File script = FileUtils.checkFile(PERMISSIONS_SCRIPT_PATH);
+		File apkIn = FileUtils.checkFile(this.apkIn);
+		FileUtils.checkDir(androguardPath);
 
 		StringBuffer outputBuffer = new StringBuffer();
 		int exitCode = exec(outputBuffer, pythonPath,
@@ -165,41 +165,6 @@ public class Dame {
 		// TODO call injection
 		// TODO smali to apk (default out.apk nella stessa cartella di apkIn)
 		// TODO rimozione dati temporanei
-	}
-
-	private static File checkFile(String filePath) throws FileNotFoundException {
-		File file = new File(filePath);
-		if (!file.canRead() || !file.isFile()) {
-			String err = "Could not find or read the file: " + filePath;
-			log.error(err);
-			throw new FileNotFoundException(err);
-		}
-		return file;
-	}
-
-	private static void checkDir(String dirPath) throws FileNotFoundException {
-		File dir = new File(dirPath);
-		if (!dir.isDirectory() || !dir.canRead()) {
-			String err = "Could not find or read the directory: " + dirPath;
-			log.error(err);
-			throw new FileNotFoundException(err);
-		}
-	}
-
-	private static void checkOutputDir(String dirPath) throws IOException {
-		File dir = new File(dirPath);
-		if (dir.isDirectory() && dir.canWrite())
-			return;
-		if (dir.isDirectory() && !dir.canWrite()) {
-			String err = "Could not write to the directory: " + dirPath;
-			log.error(err);
-			throw new IOException(err);
-		}
-		if (!dir.mkdirs()) {
-			String err = "Could not create the directory: " + dirPath;
-			log.error(err);
-			throw new IOException(err);
-		}
 	}
 
 	/**

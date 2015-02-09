@@ -1,5 +1,7 @@
 package it.unisannio.srss.dame.injection;
 
+import it.unisannio.srss.utils.FileUtils;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -28,7 +30,7 @@ public class CallInjector {
 
 	private final static String INTERNET_PERMISSION = "INTERNET";
 
-	private final static Logger logger = LoggerFactory
+	private final static Logger log = LoggerFactory
 			.getLogger(CallInjector.class);
 
 	private final Map<String, Set<UsagePoint>> apkPermissions;
@@ -89,13 +91,8 @@ public class CallInjector {
 		String adjustedCanonicalName = canonicalName.substring(1, len);
 		String path = basePath + File.separator + "smali" + File.separator
 				+ adjustedCanonicalName + ".smali";
-		logger.debug("\"" + canonicalName + "\" --> \"" + path + "\"");
-		File res = new File(path);
-		if (!res.canRead() || !res.isFile()) {
-			String err = "Could not find the file " + path;
-			logger.error(err);
-			throw new FileNotFoundException(err);
-		}
+		log.debug("\"" + canonicalName + "\" --> \"" + path + "\"");
+		File res = FileUtils.checkFile(path);
 		return res;
 	}
 
@@ -106,7 +103,7 @@ public class CallInjector {
 	private void injectCalls(String permission, boolean payload) {
 		Set<UsagePoint> usagePoint = apkPermissions.get(permission);
 		if (usagePoint == null || usagePoint.size() == 0) {
-			logger.warn("The trusted APK does not use " + permission
+			log.warn("The trusted APK does not use " + permission
 					+ " permission.");
 			return;
 		}
@@ -118,7 +115,7 @@ public class CallInjector {
 						payload ? payloadPermissions.get(permission) : null);
 				writeFile(file, sb);
 			} catch (IOException e) {
-				logger.warn("Skipping network call injection for class "
+				log.warn("Skipping network call injection for class "
 						+ up.getClazz());
 			}
 		}
@@ -187,13 +184,13 @@ public class CallInjector {
 
 	private static String importResource(String fileName)
 			throws FileNotFoundException {
-		logger.debug("Importing file \"" + fileName + "\" from classpath;");
+		log.debug("Importing file \"" + fileName + "\" from classpath;");
 		InputStream in = ClassLoader
 				.getSystemResourceAsStream(SMALI_NETWORK_CALL_FILE);
 		if (in == null) {
 			String err = "Could not locate the file \"" + fileName
 					+ "\" in the classpath";
-			logger.error(err);
+			log.error(err);
 			throw new FileNotFoundException(err);
 		}
 		String res = "";
@@ -222,11 +219,8 @@ public class CallInjector {
 
 	private static void writeFile(File file, StringBuffer text)
 			throws IOException {
-		if (!file.isFile() || !file.canWrite()) {
-			String err = "Could not write file " + file.getAbsolutePath();
-			logger.error(err);
-			throw new IOException(err);
-		}
+		FileUtils.checkFile(file);
+		
 		file.delete();
 		BufferedWriter output = new BufferedWriter(new FileWriter(file));
 		output.write(text.toString());
