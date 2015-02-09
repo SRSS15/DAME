@@ -4,14 +4,14 @@
 
 package it.unisannio.srss.dame.injection;
 
-import it.unisannio.srss.dame.ManifestManipulator;
 import it.unisannio.srss.utils.DirectoryCopier;
+import it.unisannio.srss.utils.FileUtils;
+import it.unisannio.srss.utils.ManifestManipulator;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -39,17 +39,20 @@ public class CommonInjector {
 	 *            la directory che contiene lo smali da copiare
 	 * @param appSmaliPath
 	 *            la directory in cui si vuole copiare lo smali
-	 * @throws FileNotFoundException
-	 *             se il path di una delle due directory non esiste
+	 * @throws IOException 
 	 */
 	public static void injectSmali(Path commonSmaliSource, Path appSmaliPath)
-			throws FileNotFoundException {
-
-		if (Files.notExists(commonSmaliSource) || Files.notExists(appSmaliPath)) {
-			String msg = "Common smali source or app smali source directory doesn't exist";
-			LOG.error(msg);
-			throw new FileNotFoundException(msg);
-		}
+			throws IOException {
+		// XXX il metodo Files.notExists non è ideale per verificare se un file
+		// non esiste perché restituisce false se non è possibile accedere alla
+		// directory. Il controllo è stato sostituito.
+		FileUtils.checkDir(commonSmaliSource.toFile());
+		FileUtils.checkDirForWriting(appSmaliPath.toFile(),false);
+//		if (Files.notExists(commonSmaliSource) || Files.notExists(appSmaliPath)) {
+//			String msg = "Common smali source or app smali source directory doesn't exist";
+//			LOG.error(msg);
+//			throw new FileNotFoundException(msg);
+//		}
 
 		LOG.info("Start coping common smali from "
 				+ commonSmaliSource.toString() + " to "
