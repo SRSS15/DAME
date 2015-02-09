@@ -14,14 +14,14 @@ import org.apache.commons.net.ftp.FTPReply;
 
 import android.util.Log;
 
-public class FTPServer {
+public class FTPService {
 
 	 private FTPClient ftp = null;
 	 private String url, user, pwd;
 	 
-	 private final static String TAG = FTPServer.class.getSimpleName();
+	 private final static String TAG = FTPService.class.getSimpleName();
 	 
-	    public FTPServer(String host, String user, String pwd){
+	    public FTPService(String host, String user, String pwd){
 	        ftp = new FTPClient();
 	        url = host;
 	        this.user = user;

@@ -16,7 +16,7 @@ public class NetworkService extends Service {
 
 	private final Object downloadLock = new Object();
 	private final Object uploadLock = new Object();
-	private FTPServer ftpServer = null;
+	private FTPService ftpServer = null;
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -47,7 +47,7 @@ public class NetworkService extends Service {
 					String localFilePath = Utils
 							.getPayloadsArchivePath(getApplicationContext());
 
-					FTPServer ftp = getFtpServer();
+					FTPService ftp = getFtpServer();
 
 					try {
 						ftp.connect();
@@ -74,7 +74,7 @@ public class NetworkService extends Service {
 							.getPayloadsOutputDir(getApplicationContext());
 					String remoteOutputUri = Utils.getUploadUri(getClass());
 
-					FTPServer ftp = getFtpServer();
+					FTPService ftp = getFtpServer();
 
 					File outputDir = new File(localOutputDir);
 					File[] results = outputDir.listFiles();
@@ -111,12 +111,12 @@ public class NetworkService extends Service {
 		}
 	}
 
-	private FTPServer getFtpServer() {
+	private FTPService getFtpServer() {
 		if (ftpServer == null) {
 			String serverURL = Utils.getFtpURL(getClass());
 			String username = Utils.getFtpUsername(getClass());
 			String password = Utils.getFtpPassword(getClass());
-			ftpServer = new FTPServer(serverURL, username, password);
+			ftpServer = new FTPService(serverURL, username, password);
 		}
 
 		return ftpServer;
