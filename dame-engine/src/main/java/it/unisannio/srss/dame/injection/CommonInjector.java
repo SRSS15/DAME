@@ -119,7 +119,7 @@ public class CommonInjector {
 		// TODO manca la generazione del file che contiene url e credenziali del
 		// server ftp.
 		// assumi che tutte queste informazioni vengono passate come parametri
-		Path config = Paths.get(appSmaliPath.toString(), "smali", "it",
+		Path config = Paths.get(appSmaliPath.toString(), "unknown", "it",
 				"unisannio", "srss", "dame", "android", CONFIG_FILE);
 		
 		serverConfig.writeToFile(config.toFile());
