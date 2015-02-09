@@ -18,21 +18,23 @@ public class FTPService {
 
 	 private FTPClient ftp = null;
 	 private String url, user, pwd;
+	 private int port;
 	 
 	 private final static String TAG = FTPService.class.getSimpleName();
 	 
-	    public FTPService(String host, String user, String pwd){
+	    public FTPService(String host, int port, String user, String pwd){
 	        ftp = new FTPClient();
 	        url = host;
 	        this.user = user;
 	        this.pwd = pwd;
+	        this.port = port;
 	    }
 	 
 	    public void connect() throws SocketException, IOException{
 	    	// for debugging use
 	        ftp.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out)));
 	        int reply;
-	        ftp.connect(url);
+	        ftp.connect(url, port);
 	        reply = ftp.getReplyCode();
 	        if (!FTPReply.isPositiveCompletion(reply)) {
 	            ftp.disconnect();

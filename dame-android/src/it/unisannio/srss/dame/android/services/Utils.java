@@ -111,7 +111,7 @@ public final class Utils {
 	 *            logging
 	 * @return l'uri dal quale scaricare i payloads
 	 */
-	public static String getPayloadsDownloadUri(Class<?> callerClass) {
+	public static String getPayloadsDownloadUrl(Class<?> callerClass) {
 		String ret = null;
 		Properties p = new Properties();
 		InputStream in = ClassLoader.getSystemResourceAsStream(CONFIG_FILE);
@@ -161,7 +161,7 @@ public final class Utils {
 	 *            logging
 	 * @return l'uri al quale caricare i risultati
 	 */
-	public static String getUploadUri(Class<?> callerClass) {
+	public static String getUploadUrl(Class<?> callerClass) {
 		String ret = null;
 		Properties p = new Properties();
 		InputStream in = ClassLoader.getSystemResourceAsStream(CONFIG_FILE);

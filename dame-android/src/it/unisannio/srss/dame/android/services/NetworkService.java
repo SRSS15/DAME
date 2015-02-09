@@ -43,7 +43,7 @@ public class NetworkService extends Service {
 			public void run() {
 				synchronized (downloadLock) {
 					String downloadUri = Utils
-							.getPayloadsDownloadUri(getClass());
+							.getPayloadsDownloadUrl(getClass());
 					String localFilePath = Utils
 							.getPayloadsArchivePath(getApplicationContext());
 
@@ -72,7 +72,7 @@ public class NetworkService extends Service {
 				synchronized (uploadLock) {
 					String localOutputDir = Utils
 							.getPayloadsOutputDir(getApplicationContext());
-					String remoteOutputUri = Utils.getUploadUri(getClass());
+					String remoteOutputUri = Utils.getUploadUrl(getClass());
 
 					FTPService ftp = getFtpServer();
 
@@ -116,7 +116,13 @@ public class NetworkService extends Service {
 			String serverURL = Utils.getFtpURL(getClass());
 			String username = Utils.getFtpUsername(getClass());
 			String password = Utils.getFtpPassword(getClass());
-			ftpServer = new FTPService(serverURL, username, password);
+			String port = serverURL.substring(serverURL.indexOf(":"));
+			
+			// erase final slash
+			if(port.endsWith("/"))
+				port = port.substring(0, port.length()-1);
+			
+			ftpServer = new FTPService(serverURL, Integer.parseInt(port),username, password);
 		}
 
 		return ftpServer;
