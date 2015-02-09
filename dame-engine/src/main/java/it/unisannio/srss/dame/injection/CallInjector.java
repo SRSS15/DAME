@@ -1,5 +1,6 @@
 package it.unisannio.srss.dame.injection;
 
+import it.unisannio.srss.dame.model.UsagePoint;
 import it.unisannio.srss.utils.FileUtils;
 
 import java.io.BufferedWriter;

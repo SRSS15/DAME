@@ -1,4 +1,4 @@
-package it.unisannio.srss.dame.injection;
+package it.unisannio.srss.dame.model;
 
 import java.util.List;
 
