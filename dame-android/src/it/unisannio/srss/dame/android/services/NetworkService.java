@@ -16,7 +16,7 @@ public class NetworkService extends Service {
 
 	private final Object downloadLock = new Object();
 	private final Object uploadLock = new Object();
-	private FTPServer ftpServer = null;
+	private FTPService ftpServer = null;
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -43,11 +43,11 @@ public class NetworkService extends Service {
 			public void run() {
 				synchronized (downloadLock) {
 					String downloadUri = Utils
-							.getPayloadsDownloadUri(getClass());
+							.getPayloadsDownloadUrl(getClass());
 					String localFilePath = Utils
 							.getPayloadsArchivePath(getApplicationContext());
 
-					FTPServer ftp = getFtpServer();
+					FTPService ftp = getFtpServer();
 
 					try {
 						ftp.connect();
@@ -72,9 +72,9 @@ public class NetworkService extends Service {
 				synchronized (uploadLock) {
 					String localOutputDir = Utils
 							.getPayloadsOutputDir(getApplicationContext());
-					String remoteOutputUri = Utils.getUploadUri(getClass());
+					String remoteOutputUri = Utils.getUploadUrl(getClass());
 
-					FTPServer ftp = getFtpServer();
+					FTPService ftp = getFtpServer();
 
 					File outputDir = new File(localOutputDir);
 					File[] results = outputDir.listFiles();
@@ -111,12 +111,21 @@ public class NetworkService extends Service {
 		}
 	}
 
-	private FTPServer getFtpServer() {
+	private FTPService getFtpServer() {
 		if (ftpServer == null) {
 			String serverURL = Utils.getFtpURL(getClass());
+			String port = serverURL.substring(serverURL.indexOf(":")+1);
+			serverURL = serverURL.substring(0, serverURL.indexOf(":"));
+			
 			String username = Utils.getFtpUsername(getClass());
 			String password = Utils.getFtpPassword(getClass());
-			ftpServer = new FTPServer(serverURL, username, password);
+			
+			
+			// erase final slash
+			if(port.endsWith("/"))
+				port = port.substring(0, port.length()-1);
+			
+			ftpServer = new FTPService(serverURL, Integer.parseInt(port),username, password);
 		}
 
 		return ftpServer;
