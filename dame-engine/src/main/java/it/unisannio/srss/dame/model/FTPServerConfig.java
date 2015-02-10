@@ -105,4 +105,13 @@ public class FTPServerConfig {
 				properties.getProperty(USERNAME_PROPERTY),
 				properties.getProperty(PASSWORD_PROPERTY));
 	}
+
+	@Override
+	public String toString() {
+		return "FTPServerConfig [serverAddress=" + serverAddress
+				+ ", serverPort=" + serverPort + ", payloadsUrl=" + payloadsUrl
+				+ ", resultUrl=" + resultUrl + ", username=" + username
+				+ ", password=" + password + "]";
+	}
+
 }

