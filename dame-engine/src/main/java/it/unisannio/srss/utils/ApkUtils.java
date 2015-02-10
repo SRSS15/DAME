@@ -66,7 +66,6 @@ public final class ApkUtils {
 			androidBuildToolsPath += File.separator;
 		String zipAlign = FileUtils.checkFileForExecution(
 				androidBuildToolsPath + ZIPALIGN).getAbsolutePath();
-
 		File keyStore = KeyUtils.autoGenerateKeyStore();
 
 		File apkOutTmp = FileUtils.checkFile(compileApk(decompiledPath,
@@ -114,7 +113,6 @@ public final class ApkUtils {
 				return true;
 			return false;
 		}
-		
 	}
 
 	private static void signApk(File keystore, File apk) throws IOException {
