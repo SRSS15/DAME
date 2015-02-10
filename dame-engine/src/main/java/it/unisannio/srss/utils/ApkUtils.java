@@ -1,7 +1,6 @@
 package it.unisannio.srss.utils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -76,29 +75,19 @@ public final class ApkUtils {
 		return alignApk(zipAlign, apkOutTmp, apkOutPath);
 	}
 
-	private static File compileApk(String decompiledPath, String apktookPath)
+	private static File compileApk(String decompiledPath, String apktoolPath)
 			throws IOException {
 		StringBuffer output = new StringBuffer();
-		int exitCode = ExecUtils.exec(output, apktookPath, "b", decompiledPath);
+		int exitCode = ExecUtils.exec(output, apktoolPath, "b", decompiledPath);
 		if (exitCode != 0) {
 			String err = "Error while compiling the APK (exit code " + exitCode
 					+ "): " + output.toString();
 			log.error(err);
 			throw new IOException(err);
 		}
-		if (!decompiledPath.endsWith(File.separator))
-			decompiledPath += File.separator;
-		// TODO restituisci l'apk in decompilePath + dist/
 		// concateno dist
-		File distDir = new File(decompiledPath, "dist");
-
-		if (!distDir.isDirectory()) {
-			String err = "The path " + distDir.getAbsolutePath()
-					+ " isn't a directory or not exist";
-			log.error(err);
-			throw new FileNotFoundException(err);
-		}
-		
+		File distDir = FileUtils.checkDir(new File(decompiledPath, "dist"));
+				
 		APKFilter filter = new APKFilter();
 		File[] apks = distDir.listFiles(filter);
 
