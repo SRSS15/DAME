@@ -49,6 +49,48 @@ public final class FileUtils {
 	}
 
 	/**
+	 * Verifica che un file esista, che possa essere letto e che possa essere
+	 * eseguito.
+	 * 
+	 * @param filePath
+	 *            Il percorso del file.
+	 * @return L'istanza di {@link java.io.File} che rappresenta il file.
+	 * @throws FileNotFoundException
+	 *             Se il file non esiste o non può essere letto.
+	 * @throws IOException
+	 *             Se il file esiste ma non può essere eseguito.
+	 */
+	public static File checkFileForExecution(String filePath)
+			throws FileNotFoundException, IOException {
+		return checkFileForExecution(new File(filePath));
+	}
+
+	/**
+	 * Verifica che un file esista, che possa essere letto e che possa essere
+	 * eseguito.
+	 * 
+	 * @param file
+	 *            Il percorso del file
+	 * @return Se il file esiste, può essere letto e può essere eseguit,
+	 *         restituisce la stessa istanza di file passata come parametro.
+	 * @throws FileNotFoundException
+	 *             Se il file non esiste o non può essere letto.
+	 * @throws IOException
+	 *             Se il file esiste ma non può essere eseguito.
+	 */
+	public static File checkFileForExecution(File file)
+			throws FileNotFoundException, IOException {
+		checkFile(file);
+		if (!file.canExecute()) {
+			String err = "Could not execute the file: "
+					+ file.getAbsolutePath();
+			log.error(err);
+			throw new IOException(err);
+		}
+		return file;
+	}
+
+	/**
 	 * Verifica che una directory esista e che possa essere letta.
 	 * 
 	 * @param dirPath
