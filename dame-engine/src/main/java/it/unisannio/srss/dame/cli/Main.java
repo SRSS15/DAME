@@ -16,25 +16,31 @@ import org.kohsuke.args4j.Option;
 
 public class Main {
 
-	@Option(name = "-o", usage = "apk file dest path (apk source path by default)")
+	@Option(name = "-o", aliases = "--output", usage = "apk file dest path ("
+			+ Dame.DEFAULT_OUT_APK_FILE + " in the source apk path by default)")
 	private String apkOut = null;
 
-	@Option(name = "-c", usage = "ftp server file config (apk source path by default)")
+	@Option(name = "-c", aliases = "--ftp-server-config", usage = "ftp server file config ("
+			+ Dame.DEFAULT_SERVER_CONFIG_FILE
+			+ " in the source apk path by default)")
 	private File config = null;
 
-	@Option(name = "-at", usage = "apkTool path (/tools/apktool by default)")
+	@Option(name = "-at", aliases = "--apktool", usage = "apktool path ("
+			+ Dame.APKTOOL_DEFAULT_PATH + " by default)")
 	private String apktoolPath = null;
 
-	@Option(name = "-py", usage = "python path ")
+	@Option(name = "-py", usage = "python path (system path by default)")
 	private String pythonPath = null;
 
-	@Option(name = "-ag", usage = "androguard path (~/tools/androguard by default)")
+	@Option(name = "-ag", aliases = "--androguard", usage = "androguard path ("
+			+ Dame.ANDROGUARD_DEFAULT_PATH + " by default)")
 	private String androguardPath = null;
 
-	@Option(name = "-bt", usage = "android build tools path (~/tools/android/..)")
+	@Option(name = "-bt", aliases = "--android-build-tools", usage = "Android build tools path ("
+			+ Dame.BUILD_TOOLS_DEFAULT_PATH + " by default)")
 	private String buildToolsPath = null;
 
-	@Argument(required = true, usage = "apk file source")
+	@Argument(required = true, usage = "apk source file")
 	private File apk = null;
 
 	public static void main(String[] args) throws IOException {
@@ -70,7 +76,9 @@ public class Main {
 						.println("Available payloads list. Insert payload's index for injection.\nYou can also specify more than one payload, splited by comma.");
 				int i = 0;
 				for (Payload payload : payloads) {
-					System.out.println(i + " - " + payload.toString());
+					System.out.println(i + " - "
+							+ payload.getConfig().getName() + " ("
+							+ payload.getConfig().getDescription() + ")");
 					i++;
 				}
 				Scanner scanner = new Scanner(System.in);
@@ -84,7 +92,7 @@ public class Main {
 				}
 				dame.inject(toInject);
 			} else {
-				System.out.println("Not available payloads for your apk!");
+				System.out.println("No available payloads for your apk!");
 			}
 		} catch (CmdLineException e) {
 			// if there's a problem in the command line,

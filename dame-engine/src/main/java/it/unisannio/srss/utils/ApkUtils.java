@@ -1,6 +1,7 @@
 package it.unisannio.srss.utils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,12 +25,22 @@ public final class ApkUtils {
 	public static File decompile(String apkInPath, String apktoolPath)
 			throws IOException {
 		File apkFile = FileUtils.checkFile(apkInPath);
-		FileUtils.checkFileForExecution(apktoolPath);
+		
+		try {
+			FileUtils.checkFileForExecution(apktoolPath);
+		} catch (FileNotFoundException e) {
+			log.warn("Please set the apktool path properly.");
+			throw e;
+		} catch (IOException e) {
+			log.warn("Please make " + apktoolPath + " executable.");
+			throw e;
+		}
+		
 
 		File tmpDir = Files.createTempDirectory("srss").toFile();
 		// TODO ripristinare questa istruzione quando le cose funzionano
 		// tmpDir.deleteOnExit();
-		log.debug("Decompiling " + apkInPath + " in "
+		log.info("Decompiling " + apkInPath + " in "
 				+ tmpDir.getAbsolutePath());
 
 		StringBuffer output = new StringBuffer();
@@ -42,7 +53,7 @@ public final class ApkUtils {
 			log.error(err);
 			throw new IOException(err);
 		}
-		log.debug("APK successfully decompiled.");
+		log.info("APK successfully decompiled.");
 		return tmpDir;
 	}
 
@@ -55,24 +66,57 @@ public final class ApkUtils {
 	public static File compile(String decompiledPath,
 			String androidBuildToolsPath, String apktoolPath, String apkOutPath)
 			throws IOException {
-		FileUtils.checkDir(androidBuildToolsPath);
-		FileUtils.checkDir(decompiledPath);
-		FileUtils.checkFileForExecution(apktoolPath);
+		try {
+			FileUtils.checkDir(androidBuildToolsPath);
+		} catch (FileNotFoundException e) {
+			log.warn("Please set the Android Build Tools path properly.");
+		}
+		FileUtils.checkDir(decompiledPath); // non dovrebbe mai dare problemi
+											// poiché si usa una directory
+											// temporanea
+		try {
+			FileUtils.checkFileForExecution(apktoolPath);
+		} catch (FileNotFoundException e) {
+			log.warn("Please set the apktool path properly.");
+			throw e;
+		} catch (IOException e) {
+			log.warn("Please make " + apktoolPath + " executable.");
+			throw e;
+		}
 		File apkOut = new File(apkOutPath);
-		FileUtils.checkDirForWriting(apkOut.getParentFile(), true);
+		try {
+			FileUtils.checkDirForWriting(apkOut.getParentFile(), true);
+		} catch (IOException e) {
+			log.warn("Please set the output path properly.");
+			throw e;
+		}
 
 		if (!androidBuildToolsPath.endsWith(File.separator))
 			androidBuildToolsPath += File.separator;
-		String zipAlign = FileUtils.checkFileForExecution(
+		String zipAlign;
+		try{
+		zipAlign = FileUtils.checkFileForExecution(
 				androidBuildToolsPath + ZIPALIGN).getAbsolutePath();
+		} catch (FileNotFoundException e) {
+			log.warn("Please set the Android Build Tools path properly.");
+			throw e;
+		} catch (IOException e) {
+			log.warn("Please make " + androidBuildToolsPath + ZIPALIGN + " executable.");
+			throw e;
+		}
+		
+		log.info("Compiling malicious APK in " + apkOutPath);
 		File keyStore = KeyUtils.autoGenerateKeyStore();
 
 		File apkOutTmp = FileUtils.checkFile(compileApk(decompiledPath,
 				apktoolPath));
 
 		signApk(keyStore, apkOutTmp);
-
-		return alignApk(zipAlign, apkOutTmp, apkOutPath);
+		
+		File res = alignApk(zipAlign, apkOutTmp, apkOutPath);
+		
+		log.info("Malicious APK successfully compiled.");		
+		return res;
 	}
 
 	private static File compileApk(String decompiledPath, String apktoolPath)
@@ -90,6 +134,7 @@ public final class ApkUtils {
 				
 		APKFilter filter = new APKFilter();
 		File[] apks = distDir.listFiles(filter);
+		log.debug("Unsigned malicious APK compiled in " + apks[0].getAbsolutePath());
 
 		return apks[0];
 	}
@@ -115,6 +160,7 @@ public final class ApkUtils {
 			log.error(err);
 			throw new IOException(err);
 		}
+		log.debug("Malicious APK successfully signed");
 	}
 
 	private static File alignApk(String zipAlign, File apk, String outputPath)
@@ -128,6 +174,8 @@ public final class ApkUtils {
 			log.error(err);
 			throw new IOException(err);
 		}
-		return FileUtils.checkFile(outputPath);
+		File res = FileUtils.checkFile(outputPath);
+		log.debug("Malicious APK successfully aligned");
+		return res;
 	}
 }

@@ -51,6 +51,7 @@ public class KeyUtils {
 			log.error(err);
 			throw new IOException(err);
 		}
+		log.debug("Keystore successfully generated");
 		return new File(keyStorePath);
 	}
 }

