@@ -4,14 +4,12 @@ import it.unisannio.srss.dame.android.payloads.Payload;
 import it.unisannio.srss.dame.model.FTPServerConfig;
 import it.unisannio.srss.dame.model.Permission;
 import it.unisannio.srss.dame.model.UsagePoint;
+import it.unisannio.srss.utils.ExecUtils;
 import it.unisannio.srss.utils.FileUtils;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -35,7 +33,8 @@ public class Dame {
 
 	private final static String PAYLOADS_BASE_PACKAGE = "it.unisannio.srss.android.payloads";
 	private final static String APKTOOL_DEFAULT_PATH = "tools/apktool";
-	private final static String ANDROGUARD_DEFAULT_PATH = "~/tools/androguard";
+	private final static String ANDROGUARD_DEFAULT_PATH = "~/tools/androguard/";
+	private final static String BUILD_TOOLS_DEFAULT_PATH = "~/tools/android/android-sdk-linux_x86/build-tools/21.1.2/";
 	private final static String PYTHON_DEFAULT_PATH = "python";
 
 	private final static String PERMISSIONS_SCRIPT_PATH = "scripts/permission_extractor.py";
@@ -52,7 +51,8 @@ public class Dame {
 	private String pythonPath = PYTHON_DEFAULT_PATH;
 
 	private String androguardPath = ANDROGUARD_DEFAULT_PATH;
-
+	private String androidBuildToolsPath = BUILD_TOOLS_DEFAULT_PATH;
+	
 	public String getApkIn() {
 		return apkIn;
 	}
@@ -101,6 +101,14 @@ public class Dame {
 		this.androguardPath = androguardPath;
 	}
 
+	public String getAndroidBuildToolsPath() {
+		return androidBuildToolsPath;
+	}
+
+	public void setAndroidBuildToolsPath(String androidBuildToolsPath) {
+		this.androidBuildToolsPath = androidBuildToolsPath;
+	}
+
 	public List<Payload> getFilteredPayloadList() throws IOException {
 		List<Payload> payloads = getAllPayloads();
 		Map<String, Set<UsagePoint>> apkPermissions = getAPKPermissions();
@@ -141,7 +149,7 @@ public class Dame {
 		FileUtils.checkDir(androguardPath);
 
 		StringBuffer outputBuffer = new StringBuffer();
-		int exitCode = exec(outputBuffer, pythonPath, script.getAbsolutePath(),
+		int exitCode = ExecUtils.exec(outputBuffer, pythonPath, script.getAbsolutePath(),
 				apkIn.getAbsolutePath(), androguardPath);
 		String output = outputBuffer.toString();
 		if (exitCode != 0) {
@@ -186,51 +194,6 @@ public class Dame {
 			serverConfigPath = path + DEFAULT_SERVER_CONFIG_FILE;
 		}
 		return FTPServerConfig.loadFromFile(serverConfigPath);
-	}
-
-	/**
-	 * Esegue un comando
-	 * 
-	 * @param outputBuffer
-	 *            Una volta eseguito il comando, questo buffer conterrà
-	 *            l'output.
-	 * @param commandAndArgs
-	 *            Comando da eseguire, seguito dai parametri.
-	 * @return Il codice di uscita dell'esecuzione. Viene restituito -1 se
-	 *         l'esecuzione viene interrotta.
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	private static int exec(StringBuffer outputBuffer, String... commandAndArgs)
-			throws IOException {
-		if (outputBuffer == null)
-			throw new IllegalArgumentException(
-					"The output buffer must be not null!");
-		log.debug("Command execution: " + Arrays.toString(commandAndArgs));
-		ProcessBuilder pb = new ProcessBuilder(commandAndArgs);
-		Process p = pb.start();
-		BufferedReader reader = new BufferedReader(new InputStreamReader(
-				p.getInputStream()));
-		int exitCode;
-		try {
-			exitCode = p.waitFor();
-		} catch (InterruptedException e) {
-			log.error("Command execution interrupted: "
-					+ Arrays.toString(commandAndArgs));
-			reader.close();
-			return -1;
-		}
-		log.debug("Exit code: " + exitCode);
-		String line = null;
-		int i = 0;
-		while ((line = reader.readLine()) != null) {
-			if (i++ > 0)
-				outputBuffer.append("\n");
-			outputBuffer.append(line);
-		}
-		log.debug("Output: " + outputBuffer.toString());
-		reader.close();
-		return exitCode;
 	}
 
 }
