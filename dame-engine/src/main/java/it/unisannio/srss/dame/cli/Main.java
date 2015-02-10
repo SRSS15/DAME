@@ -16,14 +16,23 @@ import org.kohsuke.args4j.Option;
 
 public class Main {
 
-	@Option(name = "-o", usage = "apk file dest path")
+	@Option(name = "-o", usage = "apk file dest path (apk source path by default)")
 	private String apkOut = null;
 
-	@Option(name = "-config", usage = "ftp server file config", required = true)
+	@Option(name = "-c", usage = "ftp server file config (apk source path by default)")
 	private File config = null;
 
+	@Option(name = "-at", usage = "apkTool path (/tools/apktool by default)")
+	private String apktoolPath = null;
+
+	@Option(name = "-py", usage = "python path ")
+	private String pythonPath = null;
+
+	@Option(name = "-ag", usage = "androguard path (~/tools/androguard by default)")
+	private String androguardPath = null;
+
 	@Argument(required = true, usage = "apk file source")
-	File apk = new File(".");
+	private File apk = null;
 
 	public static void main(String[] args) throws IOException {
 		new Main().doMain(args);
@@ -37,29 +46,38 @@ public class Main {
 			Dame dame = new Dame();
 			String apkIn = apk.getAbsolutePath();
 			dame.setApkIn(apkIn);
-			if (apkOut != null) {
+			if (apkOut != null)
 				dame.setApkOut(apkOut);
+			if (config != null) {
+				String serverConfigPath = config.getAbsolutePath();
+				dame.setServerConfigPath(serverConfigPath);
 			}
-			String serverConfigPath = config.getAbsolutePath();
-			dame.setServerConfigPath(serverConfigPath);
-			List<Payload> payloads=dame.getFilteredPayloadList();
-			if(!payloads.isEmpty()){
-				System.out.println("Available payloads list. Insert payload's index for injection.\nYou can also specify more than one payload, splited by comma.");
-				int i=0;
+			if (apktoolPath != null)
+				dame.setApktoolPath(apktoolPath);
+			if (pythonPath != null)
+				dame.setPythonPath(pythonPath);
+			if (androguardPath != null)
+				dame.setAndroguardPath(androguardPath);
+			List<Payload> payloads = dame.getFilteredPayloadList();
+			if (!payloads.isEmpty()) {
+				System.out
+						.println("Available payloads list. Insert payload's index for injection.\nYou can also specify more than one payload, splited by comma.");
+				int i = 0;
 				for (Payload payload : payloads) {
-					System.out.println(i+" - "+payload.toString());
+					System.out.println(i + " - " + payload.toString());
 					i++;
 				}
-				Scanner scanner=new Scanner(System.in);
-				String fromExploiter=scanner.nextLine()+",";
+				Scanner scanner = new Scanner(System.in);
+				String fromExploiter = scanner.nextLine() + ",";
 				scanner.close();
-				StringTokenizer st=new StringTokenizer(fromExploiter);
-				List<Payload> toInject=new ArrayList<Payload>();
-				while(st.hasMoreTokens()){
+				StringTokenizer st = new StringTokenizer(fromExploiter, ",");
+
+				List<Payload> toInject = new ArrayList<Payload>();
+				while (st.hasMoreTokens()) {
 					toInject.add(payloads.get(Integer.parseInt(st.nextToken())));
 				}
 				dame.inject(toInject);
-			}else{
+			} else {
 				System.out.println("Not available payloads for your apk!");
 			}
 		} catch (CmdLineException e) {

