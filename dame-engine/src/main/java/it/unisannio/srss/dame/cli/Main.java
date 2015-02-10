@@ -31,6 +31,9 @@ public class Main {
 	@Option(name = "-ag", usage = "androguard path (~/tools/androguard by default)")
 	private String androguardPath = null;
 
+	@Option(name = "-bt", usage = "android build tools path (~/tools/android/..)")
+	private String buildToolsPath = null;
+
 	@Argument(required = true, usage = "apk file source")
 	private File apk = null;
 
@@ -43,6 +46,7 @@ public class Main {
 		try {
 			// parse the arguments.
 			parser.parseArgument(args);
+			// run engine
 			Dame dame = new Dame();
 			String apkIn = apk.getAbsolutePath();
 			dame.setApkIn(apkIn);
@@ -58,6 +62,8 @@ public class Main {
 				dame.setPythonPath(pythonPath);
 			if (androguardPath != null)
 				dame.setAndroguardPath(androguardPath);
+			if (buildToolsPath != null)
+				dame.setAndroidBuildToolsPath(buildToolsPath);
 			List<Payload> payloads = dame.getFilteredPayloadList();
 			if (!payloads.isEmpty()) {
 				System.out
