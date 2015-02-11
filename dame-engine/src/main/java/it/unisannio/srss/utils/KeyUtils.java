@@ -32,6 +32,7 @@ public class KeyUtils {
 			String c, String alias, String keypass, String storepass,
 			String keyalg, int keysize, int validity) throws IOException {
 		StringBuffer output = new StringBuffer();
+		StringBuffer error = new StringBuffer();
 		File tmpDir = Files.createTempDirectory("srss").toFile();
 		// TODO ripristinare questa istruzione quando le cose funzionano
 		// tmpDir.deleteOnExit();
@@ -40,14 +41,16 @@ public class KeyUtils {
 			keyStorePath += File.separator;
 		keyStorePath += "tmp_key_store";
 		log.debug("Generating keystore in " + keyStorePath);
-		int exitCode = ExecUtils.exec(output, KEYTOOL, "-genkeypairs",
-				"-dname", "cn=" + cn + ", ou=" + ou + ", o=" + o + ", c=" + c,
-				"-alias", alias, "-keypass", keypass, "-keystore",
-				keyStorePath, "-storepass", storepass, "-validity", validity
-						+ "", "-keyalg", keyalg, "-keysize", keysize + "");
+		int exitCode = ExecUtils.exec(output, error, null, KEYTOOL,
+				"-genkeypair", "-dname", "cn=" + cn + ", ou=" + ou + ", o=" + o
+						+ ", c=" + c, "-alias", alias, "-keypass", keypass,
+				"-keystore", keyStorePath, "-storepass", storepass,
+				"-validity", validity + "", "-keyalg", keyalg, "-keysize",
+				keysize + "");
 		if (exitCode != 0) {
 			String err = "Error while generating the keystore (exit code "
-					+ exitCode + "): " + output.toString();
+					+ exitCode + "): " + output.toString() + "\n"
+					+ error.toString();
 			log.error(err);
 			throw new IOException(err);
 		}

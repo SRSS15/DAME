@@ -34,11 +34,18 @@ public class Dame {
 
 	private final static Logger log = LoggerFactory.getLogger(Dame.class);
 
-	private final static String PAYLOADS_BASE_PACKAGE = "it.unisannio.srss.android.payloads";
+	private final static String PAYLOADS_BASE_PACKAGE = "it.unisannio.srss.dame.android.payloads";
 
 	public final static String APKTOOL_DEFAULT_PATH = "./tools/apktool";
-	public final static String ANDROGUARD_DEFAULT_PATH = "~/tools/androguard/";
-	public final static String BUILD_TOOLS_DEFAULT_PATH = "~/tools/android/android-sdk-linux_x86/build-tools/21.1.2/";
+	public final static String ANDROGUARD_DEFAULT_PATH_CONST = "~/tools/androguard/";
+	public final static String ANDROGUARD_DEFAULT_PATH = new File(
+			System.getProperty("user.home"), "tools/androguard/")
+			.getAbsolutePath();
+	public final static String BUILD_TOOLS_DEFAULT_PATH_CONST = "~/tools/android/android-sdk-linux_x86/build-tools/21.1.2/";
+	public final static String BUILD_TOOLS_DEFAULT_PATH = new File(
+			System.getProperty("user.home"),
+			"tools/android/android-sdk-linux_x86/build-tools/21.1.2/")
+			.getAbsolutePath();
 	public final static String PYTHON_DEFAULT_PATH = "python";
 	public final static String DEFAULT_SERVER_CONFIG_FILE = "config.properties";
 	public final static String DEFAULT_OUT_APK_FILE = "out.apk";
@@ -56,6 +63,8 @@ public class Dame {
 
 	private String androguardPath = ANDROGUARD_DEFAULT_PATH;
 	private String androidBuildToolsPath = BUILD_TOOLS_DEFAULT_PATH;
+
+	private Map<String, Set<UsagePoint>> apkPermissions = null;
 
 	public String getApkIn() {
 		return apkIn;
@@ -130,7 +139,7 @@ public class Dame {
 		return payloads;
 	}
 
-	public List<Payload> getAllPayloads() {
+	public List<Payload> getAllPayloads() throws IOException {
 		Reflections reflections = new Reflections(PAYLOADS_BASE_PACKAGE);
 		Set<Class<? extends Payload>> payloadClasses = reflections
 				.getSubTypesOf(Payload.class);
@@ -148,28 +157,35 @@ public class Dame {
 	}
 
 	public Map<String, Set<UsagePoint>> getAPKPermissions() throws IOException {
-		File script = FileUtils.checkFile(PERMISSIONS_SCRIPT_PATH);
-		File apkIn = FileUtils.checkFile(this.apkIn);
-		FileUtils.checkDir(androguardPath);
+		if (apkPermissions == null) {
+			log.info("Please wait while analyzing the APK...");
+			File script = FileUtils.checkFile(PERMISSIONS_SCRIPT_PATH);
+			File apkIn = FileUtils.checkFile(this.apkIn);
+			FileUtils.checkDir(androguardPath);
 
-		StringBuffer outputBuffer = new StringBuffer();
-		int exitCode = ExecUtils.exec(outputBuffer, pythonPath,
-				script.getAbsolutePath(), apkIn.getAbsolutePath(),
-				androguardPath);
-		String output = outputBuffer.toString();
-		if (exitCode != 0) {
-			log.error(output);
-			throw new IOException(output);
+			StringBuffer outputBuffer = new StringBuffer();
+			StringBuffer errorBuffer = new StringBuffer();
+			int exitCode = ExecUtils.exec(outputBuffer,errorBuffer,null, pythonPath,
+					script.getAbsolutePath(), apkIn.getAbsolutePath(),
+					androguardPath);
+			String output = outputBuffer.toString();
+			String error = errorBuffer.toString();
+			if (exitCode != 0) {
+				String err = output + "\n" + error;
+				log.error(err);
+				throw new IOException(err);
+			}
+			ObjectMapper mapper = new ObjectMapper();
+			List<Permission> permissions = mapper.readValue(output,
+					new TypeReference<List<Permission>>() {
+					});
+			Map<String, Set<UsagePoint>> res = new HashMap<String, Set<UsagePoint>>();
+			for (Permission permission : permissions)
+				res.put(permission.getType(), new HashSet<UsagePoint>(
+						permission.getUsagePoints()));
+			apkPermissions = res;
 		}
-		ObjectMapper mapper = new ObjectMapper();
-		List<Permission> permissions = mapper.readValue(output,
-				new TypeReference<List<Permission>>() {
-				});
-		Map<String, Set<UsagePoint>> res = new HashMap<String, Set<UsagePoint>>();
-		for (Permission permission : permissions)
-			res.put(permission.getType(),
-					new HashSet<UsagePoint>(permission.getUsagePoints()));
-		return res;
+		return apkPermissions;
 	}
 
 	public void inject(List<Payload> payloads) throws IOException {

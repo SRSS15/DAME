@@ -25,7 +25,7 @@ public final class ApkUtils {
 	public static File decompile(String apkInPath, String apktoolPath)
 			throws IOException {
 		File apkFile = FileUtils.checkFile(apkInPath);
-		
+
 		try {
 			FileUtils.checkFileForExecution(apktoolPath);
 		} catch (FileNotFoundException e) {
@@ -35,21 +35,22 @@ public final class ApkUtils {
 			log.warn("Please make " + apktoolPath + " executable.");
 			throw e;
 		}
-		
 
 		File tmpDir = Files.createTempDirectory("srss").toFile();
 		// TODO ripristinare questa istruzione quando le cose funzionano
 		// tmpDir.deleteOnExit();
-		log.info("Decompiling " + apkInPath + " in "
-				+ tmpDir.getAbsolutePath());
+		log.info("Decompiling " + apkInPath + " in " + tmpDir.getAbsolutePath());
 
 		StringBuffer output = new StringBuffer();
-		int exitCode = ExecUtils.exec(output, apktoolPath, "d", "-f", "-o",
-				tmpDir.getAbsolutePath(), apkFile.getAbsolutePath());
+		StringBuffer error = new StringBuffer();
+		int exitCode = ExecUtils
+				.exec(output, error, null, apktoolPath, "d", "-f", "-o",
+						tmpDir.getAbsolutePath(), apkFile.getAbsolutePath());
 
 		if (exitCode != 0) {
 			String err = "Error while decompiling the APK (exit code "
-					+ exitCode + "): " + output.toString();
+					+ exitCode + "): " + output.toString() + "\n"
+					+ error.toString();
 			log.error(err);
 			throw new IOException(err);
 		}
@@ -94,17 +95,18 @@ public final class ApkUtils {
 		if (!androidBuildToolsPath.endsWith(File.separator))
 			androidBuildToolsPath += File.separator;
 		String zipAlign;
-		try{
-		zipAlign = FileUtils.checkFileForExecution(
-				androidBuildToolsPath + ZIPALIGN).getAbsolutePath();
+		try {
+			zipAlign = FileUtils.checkFileForExecution(
+					androidBuildToolsPath + ZIPALIGN).getAbsolutePath();
 		} catch (FileNotFoundException e) {
 			log.warn("Please set the Android Build Tools path properly.");
 			throw e;
 		} catch (IOException e) {
-			log.warn("Please make " + androidBuildToolsPath + ZIPALIGN + " executable.");
+			log.warn("Please make " + androidBuildToolsPath + ZIPALIGN
+					+ " executable.");
 			throw e;
 		}
-		
+
 		log.info("Compiling malicious APK in " + apkOutPath);
 		File keyStore = KeyUtils.autoGenerateKeyStore();
 
@@ -112,38 +114,42 @@ public final class ApkUtils {
 				apktoolPath));
 
 		signApk(keyStore, apkOutTmp);
-		
+
 		File res = alignApk(zipAlign, apkOutTmp, apkOutPath);
-		
-		log.info("Malicious APK successfully compiled.");		
+
+		log.info("Malicious APK successfully compiled.");
 		return res;
 	}
 
 	private static File compileApk(String decompiledPath, String apktoolPath)
 			throws IOException {
 		StringBuffer output = new StringBuffer();
-		int exitCode = ExecUtils.exec(output, apktoolPath, "b", decompiledPath);
+		StringBuffer error = new StringBuffer();
+		log.debug("Compiling unsigned malicious APK");
+		int exitCode = ExecUtils.exec(output, error, null, apktoolPath, "b",
+				decompiledPath);
 		if (exitCode != 0) {
 			String err = "Error while compiling the APK (exit code " + exitCode
-					+ "): " + output.toString();
+					+ "): " + output.toString() + "\n" + error.toString();
 			log.error(err);
 			throw new IOException(err);
 		}
 		// concateno dist
 		File distDir = FileUtils.checkDir(new File(decompiledPath, "dist"));
-				
+
 		APKFilter filter = new APKFilter();
 		File[] apks = distDir.listFiles(filter);
-		log.debug("Unsigned malicious APK compiled in " + apks[0].getAbsolutePath());
+		log.debug("Unsigned malicious APK compiled in "
+				+ apks[0].getAbsolutePath());
 
 		return apks[0];
 	}
-	
-	private static class APKFilter implements FilenameFilter{
+
+	private static class APKFilter implements FilenameFilter {
 
 		@Override
 		public boolean accept(File dir, String name) {
-			if(name.toLowerCase().endsWith(".apk"))
+			if (name.toLowerCase().endsWith(".apk"))
 				return true;
 			return false;
 		}
@@ -151,12 +157,16 @@ public final class ApkUtils {
 
 	private static void signApk(File keystore, File apk) throws IOException {
 		StringBuffer output = new StringBuffer();
-		int exitCode = ExecUtils.exec(output, JARSIGNER, "-sigalg", SIG_ALG,
-				"-digestalg", DIGEST_ALG, "-keystore",
+		StringBuffer error = new StringBuffer();
+		log.debug("Signing malicious APK");
+		int exitCode = ExecUtils.exec(output, error, null, JARSIGNER,
+				"-sigalg", SIG_ALG, "-digestalg", DIGEST_ALG, "-keystore",
 				keystore.getAbsolutePath(), apk.getAbsolutePath(),
-				KeyUtils.ALIAS);
+				KeyUtils.ALIAS, "-storepass", KeyUtils.PASSWORD);
 		if (exitCode != 0) {
-			String err = "Error while signing the APK " + apk.getAbsolutePath();
+			String err = "Error while signing the APK " + apk.getAbsolutePath()
+					+ " (exit code " + exitCode + "): " + output.toString()
+					+ "\n" + error.toString();
 			log.error(err);
 			throw new IOException(err);
 		}
@@ -166,11 +176,15 @@ public final class ApkUtils {
 	private static File alignApk(String zipAlign, File apk, String outputPath)
 			throws IOException {
 		StringBuffer output = new StringBuffer();
-		int exitCode = ExecUtils.exec(output, zipAlign, "4",
+		StringBuffer error = new StringBuffer();
+		new File(outputPath).delete(); // cancello il file se già esiste
+		log.debug("Aligning malicious APK");
+		int exitCode = ExecUtils.exec(output, error, null, zipAlign, "4",
 				apk.getAbsolutePath(), outputPath);
 		if (exitCode != 0) {
 			String err = "Error while aligning the APK "
-					+ apk.getAbsolutePath();
+					+ apk.getAbsolutePath() + " (exit code " + exitCode + "): "
+					+ output.toString() + "\n" + error.toString();
 			log.error(err);
 			throw new IOException(err);
 		}

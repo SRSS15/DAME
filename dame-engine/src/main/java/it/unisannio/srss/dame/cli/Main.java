@@ -33,21 +33,21 @@ public class Main {
 	private String pythonPath = null;
 
 	@Option(name = "-ag", aliases = "--androguard", usage = "androguard path ("
-			+ Dame.ANDROGUARD_DEFAULT_PATH + " by default)")
+			+ Dame.ANDROGUARD_DEFAULT_PATH_CONST + " by default)")
 	private String androguardPath = null;
 
 	@Option(name = "-bt", aliases = "--android-build-tools", usage = "Android build tools path ("
-			+ Dame.BUILD_TOOLS_DEFAULT_PATH + " by default)")
+			+ Dame.BUILD_TOOLS_DEFAULT_PATH_CONST + " by default)")
 	private String buildToolsPath = null;
 
 	@Argument(required = true, usage = "apk source file")
 	private File apk = null;
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		new Main().doMain(args);
 	}
 
-	public void doMain(String[] args) throws IOException {
+	public void doMain(String[] args) {
 		CmdLineParser parser = new CmdLineParser(this);
 		try {
 			// parse the arguments.
@@ -106,6 +106,8 @@ public class Main {
 			// print option sample. This is useful some time
 			// System.err.println(" Example: java SampleMain"+parser.printExample());
 			return;
+		} catch (IOException e) {
+			System.err.println(e);
 		}
 	}
 }

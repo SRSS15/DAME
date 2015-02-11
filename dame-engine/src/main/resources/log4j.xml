@@ -11,9 +11,17 @@
 	</appender>
 	
 	<!-- Application Loggers -->
-	<logger name="it.unisannio.srss.ame">
+	<logger name="it.unisannio.srss.dame">
 		<level value="debug" />
 	</logger>
+	
+	<!-- <logger name="it.unisannio.dame.utils.ExecUtils">
+	    <level value="info" />
+	</logger> -->
+	
+	<!-- <logger name="org.reflections.Reflections">
+	    <level value="info" />
+	</logger> -->
 
 	<!-- Root Logger -->
 	<root>

@@ -10,6 +10,10 @@ import android.util.Log;
 
 public class SMSInboxPayload extends Payload {
 
+	public SMSInboxPayload(){
+		super();
+	}
+	
 	public SMSInboxPayload(Context context) {
 		super(context);
 	}

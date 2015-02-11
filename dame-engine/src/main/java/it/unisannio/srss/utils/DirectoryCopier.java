@@ -48,10 +48,8 @@ public class DirectoryCopier {
 				try{
 					LOG.debug("creating directory tree "+Files.copy(dir, newDirectory,opt));
 				}
-				catch(FileAlreadyExistsException x){
-				}
 				catch(IOException x){
-					return FileVisitResult.SKIP_SUBTREE;
+					//return FileVisitResult.SKIP_SUBTREE;
 				}
 
 				return CONTINUE;

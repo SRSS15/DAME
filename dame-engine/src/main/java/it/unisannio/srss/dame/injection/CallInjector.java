@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -131,7 +132,8 @@ public class CallInjector {
 
 	private StringBuffer injectCallInMethod(File file, String method,
 			Set<String> payloads) throws FileNotFoundException {
-		log.debug("Injecting in method " + method + " of " + file.getAbsolutePath());
+		log.debug("Injecting in method " + method + " of "
+				+ file.getAbsolutePath());
 		StringBuffer res = new StringBuffer();
 		Scanner sc = new Scanner(file);
 		String line = "";
@@ -146,16 +148,31 @@ public class CallInjector {
 			switch (state) {
 			case MATCH_METHOD:
 				matcher = methodPattern.matcher(line);
-				if (matcher.matches() && payloads == null)
-					state = State.MATCH_RETURN;
-				else if (matcher.matches() && payloads != null)
+				// if (matcher.matches() && payloads == null)
+				// state = State.MATCH_RETURN;
+				// else if (matcher.matches() && payloads != null)
+				// state = State.MATCH_LOCALS;
+				if (matcher.matches())
 					state = State.MATCH_LOCALS;
 				break;
 			case MATCH_LOCALS:
 				matcher = localsPattern.matcher(line);
 				if (matcher.matches()) {
 					locals = Integer.parseInt(matcher.group(1));
-					line = "    .locals " + (locals + payloads.size());
+					if (payloads != null) {
+						while (locals + payloads.size() >= 16
+								&& payloads.size() != 0) {
+							Iterator<String> i = payloads.iterator();
+							String payload = i.next();
+							log.warn("Excluding " + payload
+									+ " injection for method " + method
+									+ " in " + file.getAbsolutePath()
+									+ " because of too many locals");
+							i.remove();
+						}
+						locals = locals + payloads.size();
+						line = "    .locals " + locals;
+					}
 					state = State.MATCH_RETURN;
 				}
 				break;
@@ -163,13 +180,22 @@ public class CallInjector {
 				matcher = returnPattern.matcher(line);
 				if (matcher.matches()) {
 					if (payloads == null) {
-						res.append(smaliNetworkCall + "\n");
+						if (locals < 16)
+							res.append(smaliNetworkCall + "\n");
+						else
+							log.warn("Excluding network call injection for method "
+									+ method
+									+ " in "
+									+ file.getAbsolutePath()
+									+ " because of too many locals");
+
 					} else {
 						for (String payload : payloads) {
 							res.append(smaliPayloadCall.replaceAll(
 									"\\$\\{var_id\\}", locals++ + "")
 									.replaceAll("\\$\\{payload_class\\}",
-											payload));
+											payload)
+									+ "\n");
 						}
 					}
 					state = State.INJECTION_DONE;
@@ -190,8 +216,7 @@ public class CallInjector {
 	private static String importResource(String fileName)
 			throws FileNotFoundException {
 		log.debug("Importing file \"" + fileName + "\" from classpath;");
-		InputStream in = ClassLoader
-				.getSystemResourceAsStream(SMALI_NETWORK_CALL_FILE);
+		InputStream in = ClassLoader.getSystemResourceAsStream(fileName);
 		if (in == null) {
 			String err = "Could not locate the file \"" + fileName
 					+ "\" in the classpath";

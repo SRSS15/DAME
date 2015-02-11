@@ -7,6 +7,10 @@ import android.util.Log;
 
 public class IMEIPayload extends Payload {
 
+	public IMEIPayload(){
+		super();
+	}
+	
 	public IMEIPayload(Context context) {
 		super(context);
 	}
