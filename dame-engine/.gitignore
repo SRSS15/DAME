@@ -3,3 +3,5 @@
 /.classpath
 /script/.idea/
 /bin/
+/common-smali/
+/payloads-jar/

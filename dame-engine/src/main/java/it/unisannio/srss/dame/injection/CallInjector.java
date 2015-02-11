@@ -9,7 +9,6 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -36,7 +35,7 @@ public class CallInjector {
 
 	private final Map<String, Set<UsagePoint>> apkPermissions;
 
-	private final Map<String, List<String>> payloadPermissions;
+	private final Map<String, Set<String>> payloadPermissions;
 
 	private final String basePath;
 
@@ -46,7 +45,7 @@ public class CallInjector {
 		return apkPermissions;
 	}
 
-	public Map<String, List<String>> getPayloadPermissions() {
+	public Map<String, Set<String>> getPayloadPermissions() {
 		return payloadPermissions;
 	}
 
@@ -66,7 +65,7 @@ public class CallInjector {
 	 * @throws FileNotFoundException
 	 */
 	public CallInjector(Map<String, Set<UsagePoint>> apkPermissions,
-			Map<String, List<String>> payloadPermissions, String basePath)
+			Map<String, Set<String>> payloadPermissions, String basePath)
 			throws FileNotFoundException {
 		this.apkPermissions = apkPermissions;
 		this.payloadPermissions = payloadPermissions;
@@ -76,12 +75,16 @@ public class CallInjector {
 		this.smaliPayloadCall = importResource(SMALI_PAYLOAD_CALL_FILE);
 	}
 
-	public void inject() {
+	public void inject() throws FileNotFoundException {
+		FileUtils.checkDir(basePath);
+		log.info("Injecting payload's calls");
 		Set<String> permissions = payloadPermissions.keySet();
 		for (String permission : permissions) {
 			injectCalls(permission);
 		}
+		log.info("Injecting nerwork calls");
 		injectCalls(INTERNET_PERMISSION, false);
+		log.info("Injection successfull");
 	}
 
 	private File fromClassToFile(String canonicalName)
@@ -127,7 +130,8 @@ public class CallInjector {
 	}
 
 	private StringBuffer injectCallInMethod(File file, String method,
-			List<String> payloads) throws FileNotFoundException {
+			Set<String> payloads) throws FileNotFoundException {
+		log.debug("Injecting in method " + method + " of " + file.getAbsolutePath());
 		StringBuffer res = new StringBuffer();
 		Scanner sc = new Scanner(file);
 		String line = "";
@@ -221,7 +225,7 @@ public class CallInjector {
 	private static void writeFile(File file, StringBuffer text)
 			throws IOException {
 		FileUtils.checkFile(file);
-		
+
 		file.delete();
 		BufferedWriter output = new BufferedWriter(new FileWriter(file));
 		output.write(text.toString());
