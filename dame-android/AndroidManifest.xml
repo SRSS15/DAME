@@ -4,12 +4,15 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="19"
+        android:minSdkVersion="16"
         android:targetSdkVersion="19" />
 
     <application
         android:allowBackup="true">
         <activity android:name="it.unisannio.srss.dame.android.test.TestActivity"></activity>
+        
+        <service android:name="it.unisannio.srss.dame.android.services.NetworkService" android:exported="false"></service>
+        <service android:name="it.unisannio.srss.dame.android.services.PayloadService" android:exported="false"></service>
     </application>
 
 </manifest>
