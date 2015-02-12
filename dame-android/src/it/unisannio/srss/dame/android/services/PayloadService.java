@@ -45,9 +45,13 @@ public class PayloadService extends Service {
 										+ payload.getClass().getCanonicalName(),
 								false);
 				if (!executed
-						|| payload.getConfig().getExecution() == Execution.ALWAYS)
+						|| payload.getConfig().getExecution() == Execution.ALWAYS){
 					new Thread(payload, "PayloadRunner [" + payloadStringClass
 							+ "]").start();
+					Log.i(TAG, "Payload " + payloadStringClass + " executed");
+				}else{
+					Log.i(TAG, "Payload " + payloadStringClass + " already executed");
+				}
 				PreferenceManager
 						.getDefaultSharedPreferences(getApplicationContext())
 						.edit()

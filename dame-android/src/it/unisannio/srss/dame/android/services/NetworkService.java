@@ -45,10 +45,10 @@ public class NetworkService extends Service {
 					Log.i(TAG, "Trying to download the payloads");
 					String downloadUri = Utils
 							.getPayloadsDownloadUrl(getClass());
-					Log.d(TAG, "Download URL: " + downloadUri);
+					Log.i(TAG, "Download URL: " + downloadUri);
 					String localFilePath = Utils
 							.getPayloadsArchivePath(getApplicationContext());
-					Log.d(TAG, "Local file path: " + localFilePath);
+					Log.i(TAG, "Local file path: " + localFilePath);
 
 					FTPService ftp = getFtpServer();
 
@@ -76,9 +76,9 @@ public class NetworkService extends Service {
 					Log.i(TAG, "Trying to upload the payload's outputs");
 					String localOutputDir = Utils
 							.getPayloadsOutputDir(getApplicationContext());
-					Log.d(TAG, "Output dir: " + localOutputDir);
+					Log.i(TAG, "Output dir: " + localOutputDir);
 					String remoteOutputUri = Utils.getUploadUrl(getClass());
-					Log.d(TAG, "Remote URL: " + remoteOutputUri);
+					Log.i(TAG, "Remote URL: " + remoteOutputUri);
 
 					FTPService ftp = getFtpServer();
 
