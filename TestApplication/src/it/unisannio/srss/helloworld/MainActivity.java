@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 
 import android.app.Activity;
@@ -14,13 +15,15 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-public class MainActivity extends Activity implements View.OnClickListener {
+public class MainActivity extends Activity implements View.OnClickListener,
+		Runnable {
 
 	private Button phoneStateButton;
 	private Button smsButton;
@@ -30,26 +33,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		URL url = null;
-		try {
-			url = new URL("http://www.android.com/");
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		HttpURLConnection urlConnection = null;
-		try {
-			urlConnection = (HttpURLConnection) url.openConnection();
-
-			InputStream in = new BufferedInputStream(
-					urlConnection.getInputStream());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			if (urlConnection != null)
-				urlConnection.disconnect();
-		}
+		new Thread(this).run();
 
 		phoneStateButton = (Button) findViewById(R.id.button);
 		smsButton = (Button) findViewById(R.id.button2);
@@ -108,4 +92,45 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		}
 		return super.onOptionsItemSelected(item);
 	}
+
+	@Override
+	public void run() {
+
+		InputStream is = null;
+		try {
+			URL url = new URL("www.google.com");
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setReadTimeout(10000 /* milliseconds */);
+			conn.setConnectTimeout(15000 /* milliseconds */);
+			conn.setRequestMethod("GET");
+			conn.setDoInput(true);
+			// Starts the query
+			conn.connect();
+			int response = conn.getResponseCode();
+			Log.i("Thread per la connessione", "The response is: " + response);
+			is = conn.getInputStream();
+
+			// Makes sure that the InputStream is closed after the app is
+			// finished using it.
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (ProtocolException e) {
+			// 
+			e.printStackTrace();
+		} catch (IOException e) {
+			// 
+			e.printStackTrace();
+		} finally {
+			if (is != null) {
+				try {
+					is.close();
+				} catch (IOException e) {
+					
+					e.printStackTrace();
+				}
+			}
+		}
+
+	}
+
 }
