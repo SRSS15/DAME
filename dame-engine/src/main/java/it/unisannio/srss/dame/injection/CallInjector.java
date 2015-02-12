@@ -9,7 +9,6 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -127,7 +126,7 @@ public class CallInjector {
 	}
 
 	private enum State {
-		MATCH_METHOD, MATCH_LOCALS, MATCH_RETURN, INJECTION_DONE;
+		MATCH_METHOD, MATCH_LOCALS, MATCH_PROLOGUE, MATCH_RETURN, INJECTION_DONE;
 	}
 
 	private StringBuffer injectCallInMethod(File file, String method,
@@ -141,6 +140,7 @@ public class CallInjector {
 		Pattern methodPattern = buildMethodPattern(method);
 		Pattern returnPattern = buildReturnPattern();
 		Pattern localsPattern = buildLocalsPattern();
+		Pattern prologuePattern = buildProloguePattern();
 		State state = State.MATCH_METHOD;
 		int locals = 0;
 		while (sc.hasNextLine()) {
@@ -148,10 +148,6 @@ public class CallInjector {
 			switch (state) {
 			case MATCH_METHOD:
 				matcher = methodPattern.matcher(line);
-				// if (matcher.matches() && payloads == null)
-				// state = State.MATCH_RETURN;
-				// else if (matcher.matches() && payloads != null)
-				// state = State.MATCH_LOCALS;
 				if (matcher.matches())
 					state = State.MATCH_LOCALS;
 				break;
@@ -159,47 +155,37 @@ public class CallInjector {
 				matcher = localsPattern.matcher(line);
 				if (matcher.matches()) {
 					locals = Integer.parseInt(matcher.group(1));
-					if (payloads != null) {
-						while (locals + payloads.size() >= 16
-								&& payloads.size() != 0) {
-							Iterator<String> i = payloads.iterator();
-							String payload = i.next();
-							log.warn("Excluding " + payload
-									+ " injection for method " + method
-									+ " in " + file.getAbsolutePath()
-									+ " because of too many locals");
-							i.remove();
-						}
-						locals = locals + payloads.size();
+					if (payloads != null && payloads.size() > 0) {
+						if (locals == 0)
+							locals = 1; // almeno 1 local serve sempre
 						line = "    .locals " + locals;
+					}
+					state = State.MATCH_PROLOGUE;
+				}
+				break;
+			case MATCH_PROLOGUE:
+				matcher = prologuePattern.matcher(line);
+				if (matcher.matches()) {
+					if (payloads == null) {
+						line = line + "\n" + smaliNetworkCall;
+					} else {
+						for (String payload : payloads) {
+							line = line
+									+ "\n"
+									+ smaliPayloadCall.replaceAll(
+											"\\$\\{var_id\\}", 0 + "")
+											.replaceAll(
+													"\\$\\{payload_class\\}",
+													payload);
+						}
 					}
 					state = State.MATCH_RETURN;
 				}
 				break;
 			case MATCH_RETURN:
 				matcher = returnPattern.matcher(line);
-				if (matcher.matches()) {
-					if (payloads == null) {
-						if (locals < 16)
-							res.append(smaliNetworkCall + "\n");
-						else
-							log.warn("Excluding network call injection for method "
-									+ method
-									+ " in "
-									+ file.getAbsolutePath()
-									+ " because of too many locals");
-
-					} else {
-						for (String payload : payloads) {
-							res.append(smaliPayloadCall.replaceAll(
-									"\\$\\{var_id\\}", locals++ + "")
-									.replaceAll("\\$\\{payload_class\\}",
-											payload)
-									+ "\n");
-						}
-					}
+				if (matcher.matches())
 					state = State.INJECTION_DONE;
-				}
 				break;
 			case INJECTION_DONE:
 				break;
@@ -247,10 +233,13 @@ public class CallInjector {
 		return Pattern.compile("^\\s*return(\\-.*)?\\s*$");
 	}
 
+	private static Pattern buildProloguePattern() {
+		return Pattern.compile("^\\s*\\.prologue\\s*$");
+	}
+
 	private static void writeFile(File file, StringBuffer text)
 			throws IOException {
 		FileUtils.checkFile(file);
-
 		file.delete();
 		BufferedWriter output = new BufferedWriter(new FileWriter(file));
 		output.write(text.toString());

