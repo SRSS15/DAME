@@ -95,6 +95,14 @@
             -pre-clean
     -->
 
+	<target name="clean-smali">
+		<delete includeEmptyDirs="true">
+			<fileset dir="${smali.dir}">
+				<include name="**/*" />
+			</fileset>
+		</delete>    
+	</target>
+	
 	<target name="smali-clean" >
 		<delete includeEmptyDirs="true">
 			<fileset dir="${smali.dir}">
@@ -126,7 +134,15 @@
 		</exec>
 	</target>
 
-	<target name="get-smali" depends="smail,smali-clean"/>
+	<target name="get-smali" depends="clean-smali,smail,smali-clean"/>
+	
+	<target name="clean-compays">
+		<delete includeEmptyDirs="true">
+			<fileset dir="${compays.dir}">
+				<include name="**/*" />
+			</fileset>
+		</delete>    
+	</target>	
 	
 	<path id="classpath">
 		<pathelement location="${androidjar.dir}" />
@@ -177,7 +193,7 @@
 		</exec>
 	</target>
 
-	<target name="get-payloads-jar" depends="compays,compays-clean,dist,dex"/>
+	<target name="get-payloads-jar" depends="clean-compays,compays,compays-clean,dist,dex"/>
 	    
 	<target name="print-test">
 		<echo>${sdk.dir}</echo>
