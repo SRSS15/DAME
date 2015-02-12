@@ -46,7 +46,8 @@ public class FTPService {
 	    }
 	 
 	    public void downloadFile(String remoteFilePath, String localFilePath) {
-	        try (FileOutputStream fos = new FileOutputStream(localFilePath)) {
+	        try  {
+	        	FileOutputStream fos = new FileOutputStream(localFilePath);
 	            this.ftp.retrieveFile(remoteFilePath, fos);
 	            fos.flush();
 	            fos.close();
@@ -56,7 +57,8 @@ public class FTPService {
 	    }
 	 
 	    public void uploadFile(String localFilePath, String remoteFilePath){
-	    	try(FileInputStream fin = new FileInputStream(localFilePath)){
+	    	try{
+	    		FileInputStream fin = new FileInputStream(localFilePath);
 	    		this.ftp.storeFile(remoteFilePath, fin);
 	    		fin.close();
 	    	} catch (FileNotFoundException e) {
