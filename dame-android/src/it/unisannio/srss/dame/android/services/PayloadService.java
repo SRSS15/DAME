@@ -31,7 +31,7 @@ public class PayloadService extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		String payloadStringClass = intent.getExtras().getString(PAYLOAD_CLASS);
 		if (payloadStringClass != null) {
-			Log.d(TAG, "Loading payload " + payloadStringClass);
+			Log.i(TAG, "Loading payload " + payloadStringClass);
 			try {
 				@SuppressWarnings("unchecked")
 				final Class<Payload> payloadClass = (Class<Payload>) getLoader()
@@ -56,7 +56,7 @@ public class PayloadService extends Service {
 										+ payload.getClass().getCanonicalName(),
 								true).commit();
 			} catch (Exception e) {
-				Log.d(TAG, "Could not load the payload " + payloadStringClass,
+				Log.i(TAG, "Could not load the payload " + payloadStringClass,
 						e);
 			}
 		} else {

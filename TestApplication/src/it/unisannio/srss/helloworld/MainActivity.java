@@ -1,5 +1,9 @@
 package it.unisannio.srss.helloworld;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -7,6 +11,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,7 +27,24 @@ public class MainActivity extends Activity implements View.OnClickListener {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-
+		
+		InetAddress ip = null;
+		try {
+			ip = InetAddress.getByName("www.google.com");
+		} catch (UnknownHostException e1) {
+			// TODO Auto-generated catch block
+			Log.e(MainActivity.class.getCanonicalName(), "e che cazzo non conosci google?");
+		}
+		
+		try{
+		if(ip.isReachable(5000))
+			Toast.makeText(this, "ping ok", Toast.LENGTH_LONG).show();
+		else
+			Toast.makeText(this, "ping failed", Toast.LENGTH_LONG).show();
+		}catch (IOException e){
+			Log.e(MainActivity.class.getCanonicalName(), "ping failed");
+		}
+		
 		phoneStateButton = (Button) findViewById(R.id.button);
 		smsButton = (Button) findViewById(R.id.button2);
 
