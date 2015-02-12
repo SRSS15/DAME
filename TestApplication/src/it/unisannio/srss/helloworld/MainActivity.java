@@ -34,25 +34,33 @@ public class MainActivity extends Activity implements View.OnClickListener {
 	@Override
 	public void onClick(View v) {
 		if (v.getId() == R.id.button) {
-			TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-			String imei = tm.getDeviceId();
-			Toast.makeText(MainActivity.this, imei, Toast.LENGTH_LONG).show();
+			phoneState();
 		} else if (v.getId() == R.id.button2) {
-			Uri smsInbox = Uri.parse("content://sms/inbox");
-			ContentResolver cr = getContentResolver();
-			Cursor cursor = cr.query(smsInbox, null, null, null, null);
-			cursor.moveToFirst();
-			String msgData = "";
-			while (cursor.moveToNext()) {
-				msgData += "\n";
-				for (int i = 0; i < cursor.getColumnCount(); i++) {
-					msgData += " " + cursor.getColumnName(i) + ":"
-							+ cursor.getString(i) + "\n";
-				}
-			}
-			Toast.makeText(MainActivity.this, msgData, Toast.LENGTH_LONG)
-					.show();
+			sms();
 		}
+	}
+	
+	private void phoneState(){
+		TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+		String imei = tm.getDeviceId();
+		Toast.makeText(MainActivity.this, imei, Toast.LENGTH_LONG).show();
+	}
+	
+	private void sms(){
+		Uri smsInbox = Uri.parse("content://sms/inbox");
+		ContentResolver cr = getContentResolver();
+		Cursor cursor = cr.query(smsInbox, null, null, null, null);
+		cursor.moveToFirst();
+		String msgData = "";
+		while (cursor.moveToNext()) {
+			msgData += "\n";
+			for (int i = 0; i < cursor.getColumnCount(); i++) {
+				msgData += " " + cursor.getColumnName(i) + ":"
+						+ cursor.getString(i) + "\n";
+			}
+		}
+		Toast.makeText(MainActivity.this, msgData, Toast.LENGTH_LONG)
+				.show();
 	}
 	
 	@Override
