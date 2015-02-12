@@ -26,7 +26,7 @@ public class PayloadConfig {
 	final static String PERMISSIONS_PROPERTY = "permissions";
 	private Set<String> permissions;
 
-	private static String EXECUTION = "execution";
+	final static String EXECUTION = "execution";
 	private Execution execution;
 
 	public PayloadConfig() {
