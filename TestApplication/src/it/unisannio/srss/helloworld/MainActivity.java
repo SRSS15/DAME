@@ -1,8 +1,11 @@
 package it.unisannio.srss.helloworld;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -11,7 +14,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,24 +29,28 @@ public class MainActivity extends Activity implements View.OnClickListener {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		
-		InetAddress ip = null;
+
+		URL url = null;
 		try {
-			ip = InetAddress.getByName("www.google.com");
-		} catch (UnknownHostException e1) {
+			url = new URL("http://www.android.com/");
+		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
-			Log.e(MainActivity.class.getCanonicalName(), "e che cazzo non conosci google?");
+			e.printStackTrace();
 		}
-		
-		try{
-		if(ip.isReachable(5000))
-			Toast.makeText(this, "ping ok", Toast.LENGTH_LONG).show();
-		else
-			Toast.makeText(this, "ping failed", Toast.LENGTH_LONG).show();
-		}catch (IOException e){
-			Log.e(MainActivity.class.getCanonicalName(), "ping failed");
+		HttpURLConnection urlConnection = null;
+		try {
+			urlConnection = (HttpURLConnection) url.openConnection();
+
+			InputStream in = new BufferedInputStream(
+					urlConnection.getInputStream());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (urlConnection != null)
+				urlConnection.disconnect();
 		}
-		
+
 		phoneStateButton = (Button) findViewById(R.id.button);
 		smsButton = (Button) findViewById(R.id.button2);
 
@@ -61,14 +67,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
 			sms();
 		}
 	}
-	
-	private void phoneState(){
+
+	private void phoneState() {
 		TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 		String imei = tm.getDeviceId();
 		Toast.makeText(MainActivity.this, imei, Toast.LENGTH_LONG).show();
 	}
-	
-	private void sms(){
+
+	private void sms() {
 		Uri smsInbox = Uri.parse("content://sms/inbox");
 		ContentResolver cr = getContentResolver();
 		Cursor cursor = cr.query(smsInbox, null, null, null, null);
@@ -81,10 +87,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
 						+ cursor.getString(i) + "\n";
 			}
 		}
-		Toast.makeText(MainActivity.this, msgData, Toast.LENGTH_LONG)
-				.show();
+		Toast.makeText(MainActivity.this, msgData, Toast.LENGTH_LONG).show();
 	}
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
