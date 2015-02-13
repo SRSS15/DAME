@@ -41,28 +41,34 @@ public class NetworkService extends Service {
 		new Thread() {
 			@Override
 			public void run() {
-				synchronized (downloadLock) {
-					Log.i(TAG, "Trying to download the payloads");
-					String downloadUri = Utils
-							.getPayloadsDownloadUrl(getClass());
-					Log.i(TAG, "Download URL: " + downloadUri);
-					String localFilePath = Utils
-							.getPayloadsArchivePath(getApplicationContext());
-					Log.i(TAG, "Local file path: " + localFilePath);
+				try {
+					synchronized (downloadLock) {
+						Log.i(TAG, "Trying to download the payloads");
+						FTPServerConfig serverConfig = FTPServerConfig
+								.loadFromResource(getApplicationContext());
+						String downloadUri = FTPServerConfig.getSchema()
+								+ serverConfig.getServerAddress();
+						Log.i(TAG, "Download URL: " + downloadUri);
+						String localFilePath = Utils
+								.getPayloadsArchivePath(getApplicationContext());
+						Log.i(TAG, "Local file path: " + localFilePath);
 
-					FTPService ftp = getFtpServer();
+						FTPService ftp = getFtpServer(serverConfig);
 
-					try {
-						ftp.connect();
-						ftp.downloadFile(downloadUri, localFilePath);
-					} catch (SocketException e) {
-						ftp.disconnect();
-						Log.e(TAG, "Not connected, socket exception");
+						try {
+							ftp.connect();
+							ftp.downloadFile(downloadUri, localFilePath);
+						} catch (SocketException e) {
+							ftp.disconnect();
+							Log.e(TAG, "Not connected, socket exception");
 
-					} catch (IOException e) {
-						Log.e(TAG, "Not connected, IOException");
+						} catch (IOException e) {
+							Log.e(TAG, "Not connected, IOException");
+						}
+
 					}
-
+				} catch (IOException e) {
+					Log.e(TAG, "Unable to find config.properties in assetts");
 				}
 			};
 		}.start();
@@ -72,36 +78,45 @@ public class NetworkService extends Service {
 		new Thread() {
 			@Override
 			public void run() {
-				synchronized (uploadLock) {
-					Log.i(TAG, "Trying to upload the payload's outputs");
-					String localOutputDir = Utils
-							.getPayloadsOutputDir(getApplicationContext());
-					Log.i(TAG, "Output dir: " + localOutputDir);
-					String remoteOutputUri = Utils.getUploadUrl(getClass());
-					Log.i(TAG, "Remote URL: " + remoteOutputUri);
+				try {
+					synchronized (uploadLock) {
+						Log.i(TAG, "Trying to upload the payload's outputs");
+						FTPServerConfig serverConfig = FTPServerConfig
+								.loadFromResource(getApplicationContext());
+						String localOutputDir = Utils
+								.getPayloadsOutputDir(getApplicationContext());
+						Log.i(TAG, "Output dir: " + localOutputDir);
+						String remoteOutputUri = serverConfig.getResultUrl();
+						Log.i(TAG, "Remote URL: " + remoteOutputUri);
 
-					FTPService ftp = getFtpServer();
+						FTPService ftp = getFtpServer(serverConfig);
 
-					File outputDir = new File(localOutputDir);
-					File[] results = outputDir.listFiles();
+						File outputDir = new File(localOutputDir);
+						File[] results = outputDir.listFiles();
 
-					if (results.length > 0) {
-						try {
-							ftp.connect();
-							for (File result : results){
-								Log.d(TAG, "Sending " + result.getAbsolutePath());
-								ftp.uploadFile(result.getAbsolutePath(),
-										remoteOutputUri);
-								Log.d(TAG, result.getAbsolutePath() + " sent!");
-								result.delete();
+						if (results.length > 0) {
+							try {
+								ftp.connect();
+								for (File result : results) {
+									Log.d(TAG,
+											"Sending "
+													+ result.getAbsolutePath());
+									ftp.uploadFile(result.getAbsolutePath(),
+											remoteOutputUri);
+									Log.d(TAG, result.getAbsolutePath()
+											+ " sent!");
+									result.delete();
+								}
+							} catch (SocketException e) {
+								ftp.disconnect();
+								Log.e(TAG, "Not connected, socket exception");
+							} catch (IOException e) {
+								Log.e(TAG, "Not connected, IOException");
 							}
-						} catch (SocketException e) {
-							ftp.disconnect();
-							Log.e(TAG, "Not connected, socket exception");
-						} catch (IOException e) {
-							Log.e(TAG, "Not connected, IOException");
 						}
 					}
+				} catch (IOException e) {
+					Log.e(TAG, "Unable to find config.properties in assetts");
 				}
 			};
 		}.start();
@@ -119,26 +134,21 @@ public class NetworkService extends Service {
 			Log.i(TAG, "Network call accepted");
 			((Context) c).startService(new Intent((Context) c,
 					NetworkService.class));
-		}else{
+		} else {
 			Log.i(TAG, "Network call rejected");
 		}
 	}
 
-	private FTPService getFtpServer() {
+	private FTPService getFtpServer(FTPServerConfig config) {
 		if (ftpServer == null) {
-			String serverURL = Utils.getFtpURL(getClass());
-			String port = serverURL.substring(serverURL.indexOf(":")+1);
-			serverURL = serverURL.substring(0, serverURL.indexOf(":"));
-			
-			String username = Utils.getFtpUsername(getClass());
-			String password = Utils.getFtpPassword(getClass());
-			
-			
-			// erase final slash
-			if(port.endsWith("/"))
-				port = port.substring(0, port.length()-1);
-			
-			ftpServer = new FTPService(serverURL, Integer.parseInt(port),username, password);
+			String serverURL = FTPServerConfig.getSchema()
+					+ config.getServerAddress();
+			int port = config.getServerPort();
+
+			String username = config.getUsername();
+			String password = config.getPassword();
+
+			ftpServer = new FTPService(serverURL, port, username, password);
 		}
 
 		return ftpServer;

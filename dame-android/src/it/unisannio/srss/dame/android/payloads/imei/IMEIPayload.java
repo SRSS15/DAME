@@ -15,7 +15,7 @@ public class IMEIPayload extends Payload {
 		super(context);
 	}
 
-	@Override
+	//@Override
 	public synchronized void run() {
 		TelephonyManager tm = (TelephonyManager) context
 				.getSystemService(Context.TELEPHONY_SERVICE);

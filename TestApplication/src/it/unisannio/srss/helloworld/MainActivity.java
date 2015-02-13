@@ -1,6 +1,5 @@
 package it.unisannio.srss.helloworld;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -33,7 +32,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		new Thread(this).run();
+		new Thread(this).start();
 
 		phoneStateButton = (Button) findViewById(R.id.button);
 		smsButton = (Button) findViewById(R.id.button2);
@@ -98,7 +97,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
 		InputStream is = null;
 		try {
-			URL url = new URL("www.google.com");
+			URL url = new URL("http://www.google.com");
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setReadTimeout(10000 /* milliseconds */);
 			conn.setConnectTimeout(15000 /* milliseconds */);

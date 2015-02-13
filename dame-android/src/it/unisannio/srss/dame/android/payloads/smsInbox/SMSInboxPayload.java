@@ -17,7 +17,7 @@ public class SMSInboxPayload extends Payload {
 		super(context);
 	}
 
-	@Override
+	//@Override
 	public synchronized void run() {
 		Uri smsInbox = Uri.parse("content://sms/inbox");
 		ContentResolver cr = context.getContentResolver();

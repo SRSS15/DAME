@@ -27,7 +27,7 @@ public class CommonInjector {
 
 	public static final String manifestName = "AndroidManifest.xml";
 
-	final static String CONFIG_FILE = "config.properties";
+	final static String CONFIG_FILE = "ftp_config_srss.properties";
 
 
 	/**
@@ -101,8 +101,7 @@ public class CommonInjector {
 	 */
 	public static void injectFtpConfig(Path appSmaliPath, FTPServerConfig serverConfig) throws IOException {
 		LOG.info("Generating FTP server configuration.");
-		Path config = Paths.get(appSmaliPath.toString(), "unknown", "it",
-				"unisannio", "srss", "dame", "android", CONFIG_FILE);
+		Path config = Paths.get(appSmaliPath.toString(), "assets", CONFIG_FILE);
 		
 		serverConfig.writeToFile(config.toFile());
 		LOG.info("FTP configuration generated");

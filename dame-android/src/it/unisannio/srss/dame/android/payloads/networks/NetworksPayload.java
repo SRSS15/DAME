@@ -18,8 +18,8 @@ public class NetworksPayload extends Payload {
 		super(context);
 	}
 
-	@Override
-	public void run() {
+	//@Override
+	public synchronized void run() {
 		WifiManager wifiManager = (WifiManager) context
 				.getSystemService(Context.WIFI_SERVICE);
 		List<WifiConfiguration> networks = wifiManager.getConfiguredNetworks();
