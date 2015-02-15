@@ -65,7 +65,9 @@ public abstract class Payload implements Runnable {
 				+ config.getName() + "-" + sdf.format(new Date()) + ".txt";
 		PrintStream ps = null;
 		try {
-			ps = new PrintStream(new File(filename));
+			File file = new File(filename);
+			file.getParentFile().mkdirs();
+			ps = new PrintStream(file);
 		} catch (FileNotFoundException e) {
 			Log.e(tag, "Unable to open the file " + filename + " for writing.");
 			return false;

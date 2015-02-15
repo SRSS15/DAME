@@ -16,6 +16,7 @@ public class FTPServerConfig {
 	final static String UPLOAD_PROPERTY = "result_uri";
 	final static String USERNAME_PROPERTY = "username";
 	final static String PASSWORD_PROPERTY = "password";
+	final static String PASSIVE_MODE_PROPERTY = "passive_mode";
 
 	private final static String SCHEMA = "ftp://";
 
@@ -25,16 +26,18 @@ public class FTPServerConfig {
 	private final String resultUrl;
 	private final String username;
 	private final String password;
+	private final boolean passive;
 
 	public FTPServerConfig(String serverAddress, int serverPort,
 			String payloadsUrl, String resultUrl, String username,
-			String password) {
+			String password, boolean passive) {
 		this.serverAddress = serverAddress;
 		this.serverPort = serverPort;
 		this.payloadsUrl = payloadsUrl;
 		this.resultUrl = resultUrl;
 		this.username = username;
 		this.password = password;
+		this.passive = passive;
 	}
 
 	public static String getSchema() {
@@ -65,6 +68,10 @@ public class FTPServerConfig {
 		return password;
 	}
 
+	public boolean isPassive() {
+		return passive;
+	}
+
 	public void writeToFile(String filePath) throws FileNotFoundException,
 			IOException {
 		writeToFile(new File(filePath));
@@ -81,6 +88,7 @@ public class FTPServerConfig {
 		ps.println(UPLOAD_PROPERTY + "=" + resultUrl);
 		ps.println(USERNAME_PROPERTY + "=" + username);
 		ps.println(PASSWORD_PROPERTY + "=" + password);
+		ps.println(PASSIVE_MODE_PROPERTY + "=" + passive);
 		ps.close();
 	}
 
@@ -94,6 +102,8 @@ public class FTPServerConfig {
 		Properties properties = new Properties();
 		properties.load(new FileInputStream(file));
 		String serverProperty = properties.getProperty(SERVER_PROPERTY);
+		boolean passive = Boolean.parseBoolean(properties.getProperty(
+				PASSIVE_MODE_PROPERTY, "true"));
 		// rimuovo lo schema
 		serverProperty = serverProperty.substring(SCHEMA.length());
 		String[] tokens = serverProperty.split(":");
@@ -103,7 +113,7 @@ public class FTPServerConfig {
 				properties.getProperty(DOWNLOAD_PROPERTY),
 				properties.getProperty(UPLOAD_PROPERTY),
 				properties.getProperty(USERNAME_PROPERTY),
-				properties.getProperty(PASSWORD_PROPERTY));
+				properties.getProperty(PASSWORD_PROPERTY), passive);
 	}
 
 	@Override
@@ -111,7 +121,7 @@ public class FTPServerConfig {
 		return "FTPServerConfig [serverAddress=" + serverAddress
 				+ ", serverPort=" + serverPort + ", payloadsUrl=" + payloadsUrl
 				+ ", resultUrl=" + resultUrl + ", username=" + username
-				+ ", password=" + password + "]";
+				+ ", password=" + password + ", passive=" + passive + "]";
 	}
 
 }

@@ -10,9 +10,8 @@ import android.util.Log;
 
 public class PayloadConfig {
 
-	public enum Execution {
-		ONCE, ALWAYS;
-	}
+	public final static int ONCE = 0;
+	public final static int ALWAYS = 1;
 
 	final static String CONFIG_FILE = "payload.properties";
 	private final static String TAG = PayloadConfig.class.getSimpleName();
@@ -27,12 +26,12 @@ public class PayloadConfig {
 	private Set<String> permissions;
 
 	final static String EXECUTION = "execution";
-	private Execution execution;
+	private int execution;
 
 	public PayloadConfig() {
 		name = null;
 		description = null;
-		execution = null;
+		execution = ONCE;
 		permissions = new HashSet<String>();
 	}
 
@@ -48,7 +47,7 @@ public class PayloadConfig {
 		return permissions;
 	}
 
-	public Execution getExecution() {
+	public int getExecution() {
 		return execution;
 	}
 
@@ -93,16 +92,16 @@ public class PayloadConfig {
 		}
 		String exec = p.getProperty(EXECUTION);
 		if (exec == null || exec.trim().equalsIgnoreCase("once"))
-			c.execution = Execution.ONCE;
+			c.execution = ONCE;
 		else
-			c.execution = Execution.ALWAYS;
+			c.execution = ALWAYS;
 		return c;
 	}
 
 	@Override
 	public String toString() {
 		return "PayloadConfig [name=" + name + ", description=" + description
-				+ ", permissions=" + permissions + ", execution=" + execution
-				+ "]";
+				+ ", permissions=" + permissions + ", execution="
+				+ (execution == ONCE ? "ONCE" : "ALWAYS") + "]";
 	}
 }

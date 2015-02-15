@@ -126,7 +126,7 @@ public class CallInjector {
 	}
 
 	private enum State {
-		MATCH_METHOD, MATCH_LOCALS, MATCH_PROLOGUE, MATCH_RETURN, INJECTION_DONE;
+		MATCH_METHOD, MATCH_LOCALS, MATCH_RETURN, INJECTION_DONE;
 	}
 
 	private StringBuffer injectCallInMethod(File file, String method,
@@ -138,7 +138,6 @@ public class CallInjector {
 		Pattern methodPattern = buildMethodPattern(method);
 		Pattern returnPattern = buildReturnPattern();
 		Pattern localsPattern = buildLocalsPattern();
-		Pattern prologuePattern = buildProloguePattern();
 		State state = State.MATCH_METHOD;
 		int locals = 0;
 		while (sc.hasNextLine()) {
@@ -164,42 +163,10 @@ public class CallInjector {
 						log.debug("Setting \".locals " + locals + "\" (it was "
 								+ (locals - 1) + ") for method " + method
 								+ " in class " + file.getAbsolutePath());
-//						if (locals == 0) {
-//							locals = 1; // almeno 1 local serve sempre
-//							log.debug("Setting \".locals 1\" (it was 0) for method "
-//									+ method
-//									+ " in class "
-//									+ file.getAbsolutePath());
-//						} else
-//							log.debug("Leaving \".locals " + locals
-//									+ "\" unmodified for method " + method
-//									+ " in class " + file.getAbsolutePath());
 						line = "    .locals " + locals;
-					}else if(locals>=16){
+					} else if (locals >= 16) {
 						log.debug("Skipping locals modification because it is >= 16");
 					}
-					state = State.MATCH_RETURN;
-				}
-				break;
-			case MATCH_PROLOGUE:
-				matcher = prologuePattern.matcher(line);
-				if (matcher.matches()) {
-					// if (locals <= 16) {
-					// if (payloads == null) {
-					// line = line + "\n" + smaliNetworkCall;
-					// } else {
-					// for (String payload : payloads) {
-					// line = line
-					// + "\n"
-					// + smaliPayloadCall
-					// .replaceAll("\\$\\{var_id\\}",
-					// 0 + "")
-					// .replaceAll(
-					// "\\$\\{payload_class\\}",
-					// payload);
-					// }
-					// }
-					// }
 					state = State.MATCH_RETURN;
 				}
 				break;
@@ -222,15 +189,18 @@ public class CallInjector {
 										+ " in method " + method + " of class "
 										+ file.getAbsolutePath());
 								res.append(smaliPayloadCall.replaceAll(
-										"\\$\\{var_id\\}", (locals-1) + "").replaceAll(
-										"\\$\\{payload_class\\}", payload)
+										"\\$\\{var_id\\}", (locals - 1) + "")
+										.replaceAll("\\$\\{payload_class\\}",
+												payload)
 										+ "\n");
 							}
 						}
 						state = State.INJECTION_DONE;
 					} else {
-						log.debug("Skipping injection in method " + method
-								+ " of class " + file.getAbsolutePath()
+						log.debug("Skipping injection in method "
+								+ method
+								+ " of class "
+								+ file.getAbsolutePath()
 								+ " because of too many locals. Looking for another one.");
 						state = State.MATCH_METHOD;
 					}
@@ -246,8 +216,7 @@ public class CallInjector {
 		if (state == State.MATCH_METHOD)
 			log.debug("No non-static methods " + method + " found in class "
 					+ file.getAbsolutePath());
-		if (state == State.MATCH_RETURN || state == State.MATCH_LOCALS
-				|| state == State.MATCH_PROLOGUE)
+		else if (state != State.INJECTION_DONE)
 			log.error("Invalid exit state (" + state + ") for method " + method
 					+ " in class " + file.getAbsolutePath());
 		sc.close();
@@ -287,10 +256,6 @@ public class CallInjector {
 
 	private static Pattern buildReturnPattern() {
 		return Pattern.compile("^\\s*return(\\-.*)?\\s*$");
-	}
-
-	private static Pattern buildProloguePattern() {
-		return Pattern.compile("^\\s*\\.prologue\\s*$");
 	}
 
 	private static void writeFile(File file, StringBuffer text)

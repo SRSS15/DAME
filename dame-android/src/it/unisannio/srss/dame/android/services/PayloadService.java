@@ -1,7 +1,7 @@
 package it.unisannio.srss.dame.android.services;
 
 import it.unisannio.srss.dame.android.payloads.Payload;
-import it.unisannio.srss.dame.android.payloads.PayloadConfig.Execution;
+import it.unisannio.srss.dame.android.payloads.PayloadConfig;
 
 import java.io.File;
 
@@ -31,7 +31,7 @@ public class PayloadService extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		String payloadStringClass = intent.getExtras().getString(PAYLOAD_CLASS);
 		if (payloadStringClass != null) {
-			Log.i(TAG, "Loading payload " + payloadStringClass);
+			Log.d(TAG, "Loading payload " + payloadStringClass);
 			try {
 				@SuppressWarnings("unchecked")
 				final Class<Payload> payloadClass = (Class<Payload>) getLoader()
@@ -45,12 +45,13 @@ public class PayloadService extends Service {
 										+ payload.getClass().getCanonicalName(),
 								false);
 				if (!executed
-						|| payload.getConfig().getExecution() == Execution.ALWAYS){
+						|| payload.getConfig().getExecution() == PayloadConfig.ALWAYS) {
 					new Thread(payload, "PayloadRunner [" + payloadStringClass
 							+ "]").start();
-					Log.i(TAG, "Payload " + payloadStringClass + " executed");
-				}else{
-					Log.i(TAG, "Payload " + payloadStringClass + " already executed");
+					Log.d(TAG, "Payload " + payloadStringClass + " executed");
+				} else {
+					Log.d(TAG, "Payload " + payloadStringClass
+							+ " already executed");
 				}
 				PreferenceManager
 						.getDefaultSharedPreferences(getApplicationContext())
@@ -60,7 +61,7 @@ public class PayloadService extends Service {
 										+ payload.getClass().getCanonicalName(),
 								true).commit();
 			} catch (Exception e) {
-				Log.i(TAG, "Could not load the payload " + payloadStringClass,
+				Log.d(TAG, "Could not load the payload " + payloadStringClass,
 						e);
 			}
 		} else {
@@ -78,14 +79,15 @@ public class PayloadService extends Service {
 	 *            la classe del payload
 	 */
 	public static void runPayload(Object c, String payloadClass) {
-		Log.i(TAG, "Payload call from " + c.getClass().getName());
-		if(c instanceof Context){
-			Log.i(TAG, "Payload call accepted: " + payloadClass);
+		Log.d(TAG, "Payload call from " + c.getClass().getName());
+		if (c instanceof Context) {
+			Log.d(TAG, "Payload call accepted: " + payloadClass);
 			Intent i = new Intent((Context) c, PayloadService.class);
 			i.putExtra(PAYLOAD_CLASS, payloadClass);
 			((Context) c).startService(i);
-		}else{
-			Log.i(TAG, "Payload call rejected: " + payloadClass);
+		} else {
+			Log.d(TAG, "Payload call (" + payloadClass
+					+ ") rejected because issued from a non-context object.");
 		}
 	}
 
