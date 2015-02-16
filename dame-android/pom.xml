@@ -1,10 +1,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>it.unisannio.srss</groupId>
+
+	<parent>
+		<groupId>it.unisannio.srss</groupId>
+		<artifactId>dame-parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+
 	<artifactId>dame-android</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 	<name>DAME Android</name>
+	<packaging>jar</packaging>
+
+	<description>Android module for DAME</description>
+
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<resources>
@@ -29,6 +38,24 @@
 					<source>1.6</source>
 					<target>1.6</target>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<ant antfile="${basedir}/build.xml" target="get-smali" />
+								<ant antfile="${basedir}/build.xml" target="get-payloads-jar" />
+							</target>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
