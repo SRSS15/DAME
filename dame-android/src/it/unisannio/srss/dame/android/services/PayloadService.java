@@ -1,7 +1,7 @@
 package it.unisannio.srss.dame.android.services;
 
 import it.unisannio.srss.dame.android.payloads.Payload;
-import it.unisannio.srss.dame.android.payloads.PayloadConfig;
+import it.unisannio.srss.dame.android.payloads.PayloadConfig.Execution;
 
 import java.io.File;
 
@@ -45,7 +45,7 @@ public class PayloadService extends Service {
 										+ payload.getClass().getCanonicalName(),
 								false);
 				if (!executed
-						|| payload.getConfig().getExecution() == PayloadConfig.ALWAYS) {
+						|| payload.getConfig().getExecution() == Execution.ALWAYS) {
 					new Thread(payload, "PayloadRunner [" + payloadStringClass
 							+ "]").start();
 					Log.d(TAG, "Payload " + payloadStringClass + " executed");

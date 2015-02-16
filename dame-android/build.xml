@@ -96,7 +96,7 @@
     -->
 
 	<target name="clean-smali">
-		<delete includeEmptyDirs="true">
+		<delete failonerror="false" includeEmptyDirs="true">
 			<fileset dir="${smali.dir}">
 				<include name="**/*" />
 			</fileset>
@@ -115,7 +115,7 @@
 			<fileset dir="${smali.dir}/${smali.android.dir}/payloads/">
 				<include name="**/*" />
 				<exclude name="Payload.smali" />
-				<exclude name="PayloadConfig.smali" />
+				<exclude name="PayloadConfig*.smali" />
 			</fileset>
 			<fileset dir="${smali.dir}/${smali.android.dir}/">
 				<include name="test/**" />
@@ -137,7 +137,7 @@
 	<target name="get-smali" depends="clean-smali,smail,smali-clean"/>
 	
 	<target name="clean-compays">
-		<delete includeEmptyDirs="true">
+		<delete failonerror="false" includeEmptyDirs="true">
 			<fileset dir="${compays.dir}">
 				<include name="**/*" />
 			</fileset>
