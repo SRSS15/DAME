@@ -47,7 +47,7 @@
 	<property name="smali.dir" value="${basedir.dir}/dame-engine/common-smali" />
 	<property name="mycommons-net.ver" value="3.3"/>
 	<property name="commons-net.dir" value="${basedir}/libs/commons-net-${mycommons-net.ver}.jar"/>
-	
+	<property name="payloads-jar-name" value="payloads.jar" />
 	
 	<property file="ant.properties" />
 
@@ -152,7 +152,7 @@
 
 	<target name="compays" description="Generates payloads .classes">
 		<mkdir dir="${compays.dir}" />
-		<javac srcdir="${src.dir}/" destdir="${compays.dir}" classpathref="classpath" createMissingPackageInfoClass="false" target="1.7">
+		<javac srcdir="${src.dir}/" destdir="${compays.dir}" classpathref="classpath" createMissingPackageInfoClass="false" target="1.6" source="1.6">
 			<exclude name="${android.dir}/payloads/*.java" />
 			<exclude name="${android.dir}/services/*.java"/>
 			<exclude name="${android.dir}/test/*.java"/>
@@ -175,21 +175,27 @@
 	</target>	
 
 	<target name="dist" description="Generate payloads .jar">
-		<jar jarfile="${compays.dir}/${ant.project.name}.jar" basedir="${compays.dir}">
+		<jar jarfile="${compays.dir}/${payloads-jar-name}" basedir="${compays.dir}">
 			<fileset dir="${src.dir}/">
 				<patternset>
 					<include name="**/payload.properties" />
 				</patternset>
 			</fileset>
 		</jar>
+		<delete includeEmptyDirs="true">
+			<fileset dir="${compays.dir}/">
+				<include name="**/*" />
+				<exclude name="payloads.jar" />
+			</fileset>
+		</delete>
 	</target>
 
 	<target name="dex" description="Includes .dex into .jar">
 		<exec executable="./dx" dir="${dx.dir}">
 			<arg value="--dex" />
 			<arg value="--verbose" />
-			<arg value="--output=${compays.dir}/${ant.project.name}.jar" />
-			<arg value="${compays.dir}/${ant.project.name}.jar" />
+			<arg value="--output=${compays.dir}/${payloads-jar-name}" />
+			<arg value="${compays.dir}/${payloads-jar-name}" />
 		</exec>
 	</target>
 
