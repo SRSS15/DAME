@@ -49,8 +49,7 @@ public class CommonInjector {
 		try {
 			DirectoryCopier.copy(commonSmaliSource, appSmaliPath);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOG.error("Error while copying.", e);
 		}
 		LOG.info("End copying common smali code");
 	}

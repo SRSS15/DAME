@@ -37,8 +37,7 @@ public final class ApkUtils {
 		}
 
 		File tmpDir = Files.createTempDirectory("srss").toFile();
-		// TODO ripristinare questa istruzione quando le cose funzionano
-		// tmpDir.deleteOnExit();
+		tmpDir.deleteOnExit();
 		log.info("Decompiling " + apkInPath + " in " + tmpDir.getAbsolutePath());
 
 		StringBuffer output = new StringBuffer();

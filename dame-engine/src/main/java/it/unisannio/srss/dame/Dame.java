@@ -1,4 +1,4 @@
-package it.unisannio.srss.dame.cli;
+package it.unisannio.srss.dame;
 
 import it.unisannio.srss.dame.android.payloads.Payload;
 import it.unisannio.srss.dame.injection.CallInjector;
@@ -165,9 +165,9 @@ public class Dame {
 
 			StringBuffer outputBuffer = new StringBuffer();
 			StringBuffer errorBuffer = new StringBuffer();
-			int exitCode = ExecUtils.exec(outputBuffer,errorBuffer,null, pythonPath,
-					script.getAbsolutePath(), apkIn.getAbsolutePath(),
-					androguardPath);
+			int exitCode = ExecUtils.exec(outputBuffer, errorBuffer, null,
+					pythonPath, script.getAbsolutePath(),
+					apkIn.getAbsolutePath(), androguardPath);
 			String output = outputBuffer.toString();
 			String error = errorBuffer.toString();
 			if (exitCode != 0) {
@@ -209,7 +209,6 @@ public class Dame {
 		CommonInjector.injectServices(decompiledDir.toPath());
 		CommonInjector.injectFtpConfig(decompiledDir.toPath(), ftpServerConfig);
 
-		// TODO generare la mappa payload permissions
 		Map<String, Set<String>> payloadsMap = new HashMap<String, Set<String>>();
 		for (Payload payload : payloads) {
 			for (String permission : payload.getConfig().getPermissions()) {

@@ -47,14 +47,19 @@ public class NetworkService extends Service {
 						String downloadUri = serverConfig.getPayloadsUrl();
 						String localFilePath = Utils
 								.getPayloadsArchivePath(getApplicationContext());
-						Log.d(TAG, "Downloading payloads from " + downloadUri
-								+ " to " + localFilePath);
+						Log.d(TAG,
+								"Downloading payloads from "
+										+ FTPServerConfig.getSchema()
+										+ serverConfig.getServerAddress() + ":"
+										+ serverConfig.getServerPort()
+										+ downloadUri + " to " + localFilePath);
 
 						FTPService ftp = getFtpServer(serverConfig);
 
 						try {
 							ftp.connect();
 							ftp.downloadFile(downloadUri, localFilePath);
+							Log.d(TAG, "Payloads successfully downloaded");
 						} catch (IOException e) {
 							Log.e(TAG, "Could not download the payloads.", e);
 						} finally {
@@ -84,8 +89,13 @@ public class NetworkService extends Service {
 						if (!remoteOutputUri.endsWith("/"))
 							remoteOutputUri += "/";
 
-						Log.d(TAG, "Uploading payload's outputs from "
-								+ localOutputDir + " to " + remoteOutputUri);
+						Log.d(TAG,
+								"Uploading payload's outputs from "
+										+ localOutputDir + " to "
+										+ FTPServerConfig.getSchema()
+										+ serverConfig.getServerAddress() + ":"
+										+ serverConfig.getServerPort()
+										+ remoteOutputUri);
 
 						FTPService ftp = getFtpServer(serverConfig);
 

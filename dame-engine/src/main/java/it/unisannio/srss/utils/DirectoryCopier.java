@@ -10,7 +10,6 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import java.io.IOException;
 import java.nio.file.CopyOption;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -47,18 +46,13 @@ public class DirectoryCopier {
 				LOG.debug("Target Directory "+newDirectory);
 				try{
 					LOG.debug("creating directory tree "+Files.copy(dir, newDirectory,opt));
-				}
-				catch(IOException x){
-					//return FileVisitResult.SKIP_SUBTREE;
-				}
+				}catch(IOException x){}
 
 				return CONTINUE;
 			}
 
 			public FileVisitResult visitFile(Path file,
 					BasicFileAttributes attrs) throws IOException {
-				// TODO Auto-generated method stub
-				//LOG.debug("results");
 				LOG.debug("Copying file:"+file);
 				copyFile(file, target.resolve(source.relativize(file)));
 				return CONTINUE;
@@ -66,7 +60,6 @@ public class DirectoryCopier {
 
 			public FileVisitResult visitFileFailed(Path file,
 					IOException exc) throws IOException {
-				// TODO -generated method stub
 				return CONTINUE;
 			}
 		});

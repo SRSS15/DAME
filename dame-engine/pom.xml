@@ -31,7 +31,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>it.unisannio.srss.dame.cli.Main</mainClass>
+							<mainClass>it.unisannio.srss.dame.DameCLI</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
@@ -43,7 +43,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>it.unisannio.srss.dame.cli.Main</mainClass>
+							<mainClass>it.unisannio.srss.dame.DameCLI</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>

@@ -34,8 +34,7 @@ public class KeyUtils {
 		StringBuffer output = new StringBuffer();
 		StringBuffer error = new StringBuffer();
 		File tmpDir = Files.createTempDirectory("srss").toFile();
-		// TODO ripristinare questa istruzione quando le cose funzionano
-		// tmpDir.deleteOnExit();
+		tmpDir.deleteOnExit();
 		String keyStorePath = tmpDir.toString();
 		if (!keyStorePath.endsWith(File.separator))
 			keyStorePath += File.separator;

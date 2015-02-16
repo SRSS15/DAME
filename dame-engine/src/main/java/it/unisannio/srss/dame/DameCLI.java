@@ -1,9 +1,11 @@
-package it.unisannio.srss.dame.cli;
+package it.unisannio.srss.dame;
 
 import it.unisannio.srss.dame.android.payloads.Payload;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -14,7 +16,7 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
-public class Main {
+public class DameCLI {
 
 	@Option(name = "-o", aliases = "--output", usage = "apk file dest path ("
 			+ Dame.DEFAULT_OUT_APK_FILE + " in the source apk path by default)")
@@ -44,10 +46,11 @@ public class Main {
 	private File apk = null;
 
 	public static void main(String[] args) {
-		new Main().doMain(args);
+		new DameCLI().doMain(args);
 	}
 
 	public void doMain(String[] args) {
+		//System.err.println(getLocalPath());
 		CmdLineParser parser = new CmdLineParser(this);
 		try {
 			// parse the arguments.
@@ -109,5 +112,17 @@ public class Main {
 		} catch (IOException e) {
 			System.err.println(e);
 		}
+	}
+	
+	public static File getLocalPath() {
+		final Class<?> mainClass = DameCLI.class;
+		final URL url = mainClass.getProtectionDomain().getCodeSource()
+				.getLocation();
+		try {
+			return new File(url.toURI());
+		} catch (URISyntaxException e) {
+			return null;
+		}
+
 	}
 }
