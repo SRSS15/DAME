@@ -7,10 +7,17 @@
 		<artifactId>dame-parent</artifactId>
 		<version>1.0.0-RELEASE</version>
 	</parent>
-
+	
 	<artifactId>dame-android</artifactId>
 	<name>DAME Android</name>
 	<packaging>jar</packaging>
+	
+	<licenses>
+		<license>
+			<name>Apache License 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+		</license>
+	</licenses>
 
 	<description>Android module for DAME</description>
 

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- 
 # Copyright 2015 
 # 	Danilo Cianciulli 			<cianciullidanilo@gmail.com>
@@ -16,9 +17,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
  -->
-
-
-<?xml version="1.0" encoding="UTF-8"?>
 <project name="dame-android" default="help">
 
 	<!--

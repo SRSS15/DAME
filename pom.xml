@@ -8,6 +8,12 @@
 	<packaging>pom</packaging>
 
 	<description>Dynamic Android Malware Engine</description>
+	<licenses>
+		<license>
+			<name>Apache License 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+		</license>
+	</licenses>
 
 	<modules>
 		<module>dame-engine</module>

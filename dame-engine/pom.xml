@@ -11,6 +11,13 @@
 	<artifactId>dame-engine</artifactId>
 	<name>DAME Engine</name>
 	<packaging>jar</packaging>
+	
+	<licenses>
+		<license>
+			<name>Apache License 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+		</license>
+	</licenses>
 
 	<description>Engine module for DAME</description>
 
@@ -108,6 +115,9 @@
 									</fileset>
 								</copy>
 								<copy file="${basedir}/../README" tofile="${basedir}/dist/README" />
+								<copy file="${basedir}/../README_IT" tofile="${basedir}/dist/README_IT" />
+								<copy file="${basedir}/../CHANGELOG" tofile="${basedir}/dist/CHANGELOG" />
+								<copy file="${basedir}/../LICENSE-2.0.txt" tofile="${basedir}/dist/LICENSE-2.0.txt" />
 								<copy file="${basedir}/dame" tofile="${basedir}/dist/dame" />
 								<move file="${basedir}/target/${project.build.finalName}-jar-with-dependencies.jar" tofile="${basedir}/dist/dame.jar" />
 								<chmod file="${basedir}/dist/tools/apktool" perm="a+x" />
