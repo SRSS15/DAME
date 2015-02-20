@@ -79,27 +79,42 @@ public class DameCLI {
 			if (buildToolsPath != null)
 				dame.setAndroidBuildToolsPath(buildToolsPath);
 			List<Payload> payloads = dame.getFilteredPayloadList();
+			List<Payload> toInject = new ArrayList<Payload>();
+			Scanner scanner = new Scanner(System.in);
 			if (!payloads.isEmpty()) {
+				toInject.clear();
 				System.out
 						.println("Available payloads list. Insert payload's index for injection.\nYou can also specify more than one payload, splited by comma.");
-				int i = 0;
-				for (Payload payload : payloads) {
-					System.out.println(i + " - "
-							+ payload.getConfig().getName() + " ("
-							+ payload.getConfig().getDescription() + ")");
-					i++;
-				}
-				System.out.print("Insert comma-separated payload indexes: ");
-				Scanner scanner = new Scanner(System.in);
-				String fromExploiter = scanner.nextLine();
-				scanner.close();
-				StringTokenizer st = new StringTokenizer(fromExploiter, ",");
+				boolean done = false;
+				while (!done) {
+					int i = 1;
+					for (Payload payload : payloads)
+						System.out.println(i++ + " - "
+								+ payload.getConfig().getName() + " ("
+								+ payload.getConfig().getDescription() + ")");
+					System.out
+							.print("Insert comma-separated payload indexes: ");
+					String fromExploiter = scanner.nextLine();
+					StringTokenizer st = new StringTokenizer(fromExploiter, ",");
 
-				List<Payload> toInject = new ArrayList<Payload>();
-				while (st.hasMoreTokens()) {
-					toInject.add(payloads.get(Integer.parseInt(st.nextToken()
-							.trim())));
+					while (st.hasMoreTokens()) {
+						String token = st.nextToken().trim();
+						try {
+							int index = Integer.parseInt(token);
+							if (index < 1 || index > payloads.size()) {
+								System.out.println("Index " + index
+										+ " not valid.");
+							} else {
+								done = true;
+								toInject.add(payloads.get(index - 1));
+							}
+						} catch (NumberFormatException e) {
+							System.out.println("Index " + token
+									+ " is not a number.");
+						}
+					}
 				}
+				scanner.close();
 				dame.inject(toInject);
 			} else {
 				System.out.println("No available payloads for your apk!");

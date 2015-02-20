@@ -109,6 +109,8 @@ public final class ApkUtils {
 		log.info("Compiling malicious APK in " + apkOutPath);
 		File keyStore = KeyUtils.autoGenerateKeyStore();
 
+		apktoolSetup(apktoolPath);
+
 		File apkOutTmp = FileUtils.checkFile(compileApk(decompiledPath,
 				apktoolPath));
 
@@ -118,6 +120,40 @@ public final class ApkUtils {
 
 		log.info("Malicious APK successfully compiled.");
 		return res;
+	}
+
+	/**
+	 * Installa il framework di Android 5 se non è stato già installato.
+	 * 
+	 * @param apktoolPath
+	 * @throws IOException
+	 */
+	private static void apktoolSetup(String apktoolPath) throws IOException {
+		log.debug("Checking Lollipop framework.");
+		try {
+			FileUtils.checkFile(new File(System.getProperty("user.home"),
+					"apktool/framework/1-lollipop.apk"));
+			log.debug("Lollipop framework already installed");
+		} catch (FileNotFoundException e) {
+			StringBuffer output = new StringBuffer();
+			StringBuffer error = new StringBuffer();
+			log.debug("Installing Lollipop framweork");
+			int exitCode = ExecUtils.exec(output, error, null, apktoolPath,
+					"if",
+					new File("tools/framework-res.apk").getAbsolutePath(),
+					"-t", "lollipop");
+			if (exitCode != 0) {
+				String err = "Error while installing Lollipop framework (exit code "
+						+ exitCode
+						+ "): "
+						+ output.toString()
+						+ "\n"
+						+ error.toString();
+				log.error(err);
+				throw new IOException(err);
+			}
+			log.debug("Lollipop framework successfully installed");
+		}
 	}
 
 	private static File compileApk(String decompiledPath, String apktoolPath)
