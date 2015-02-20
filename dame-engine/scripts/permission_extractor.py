@@ -2,7 +2,25 @@
 # coding: iso-8859-15
 
 
-__author__ = 'Roberto Falzanano'
+# Copyright 2015 
+# 	Danilo Cianciulli 			<cianciullidanilo@gmail.com>
+# 	Emranno Francesco Sannini 	<esannini@gmail.com>
+# 	Roberto Falzarano 			<robertofalzarano@gmail.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#  http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+
 
 import sys, hashlib, os
 
@@ -56,7 +74,7 @@ def showPermissionPathUsage(vm, path) :
                 #src_descriptor]
 
 """ funzione che prende in ingresso un oggetto DalvikVirtualMachineFormato e un oggetto che rappresenta i permessi
- e ne crea un dizionario in cui per ogni permesso, che è la chiave, viene indicato in quale classe e metodo viene usato"""
+ e ne crea un dizionario in cui per ogni permesso, che ï¿œ la chiave, viene indicato in quale classe e metodo viene usato"""
 def toDictionary(dvmFormatObject, permissions):
     toReturn = {}
     keys = permissions.keys()
@@ -87,11 +105,11 @@ def dictToJson(permissionDictionary):
         for usagePoint in permissionDictionary[key]:
             k += 1
             toReturn += "\n\t\t{\"class\":\"" + usagePoint[0] + "\", \"method\":\"" + usagePoint[1] +"\"}"
-            if k < len(permissionDictionary[key]):# inserisce la virgola fin tanto che non è l'ultimo oggetto
+            if k < len(permissionDictionary[key]):# inserisce la virgola fin tanto che non ï¿œ l'ultimo oggetto
                 toReturn += ","
 
         toReturn += "\n\t\t]\n\t}"
-        if i < len(permissionDictionary):# inserisce la virgola fin tanto che non è l'ultimo oggetto
+        if i < len(permissionDictionary):# inserisce la virgola fin tanto che non ï¿œ l'ultimo oggetto
             toReturn += ","
 
     #toReturn += "]\n}"
