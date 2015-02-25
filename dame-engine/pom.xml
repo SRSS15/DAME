@@ -114,6 +114,8 @@
 										<include name="**/*" />
 									</fileset>
 								</copy>
+								<copy file="${basedir}/../README.md" tofile="${basedir}/dist/README.md" />
+								<copy file="${basedir}/../logo.png" tofile="${basedir}/dist/logo.png" />
 								<copy file="${basedir}/../README" tofile="${basedir}/dist/README" />
 								<copy file="${basedir}/../README_IT" tofile="${basedir}/dist/README_IT" />
 								<copy file="${basedir}/../CHANGELOG" tofile="${basedir}/dist/CHANGELOG" />

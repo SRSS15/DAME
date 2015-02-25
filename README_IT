@@ -25,6 +25,9 @@
                                  Università degli Studi del Sannio
                              Sicurezza delle Reti e dei Sistemi Software
                              			   A.A. 2014-2015
+
+		ATTENZIONE: questo progetto è per scopi didattici e gli autori non sono responsabili
+		per qualsiasi uso illecito del prodotto
                              			   
 I. AUTORI
 	* Danilo Cianciulli				<cianciullidanilo@gmail.com>
@@ -133,7 +136,7 @@ operare DAME.
 3.1 OPZIONI
 
 La seguente lista mostra le diverse opzioni ammesse da DAME.
-(Eseguire il file dame senza parametri per mostrarlo a schermo).
+(Eseguire lo script dame senza parametri per mostrarla a schermo).
 
  -ag (--androguard) VAL          : androguard path (~/tools/androguard/ by
                                    default)
@@ -298,7 +301,7 @@ seguento le seguenti regole.
 			it.unisannio.srss.dame.android.payloads.Payload
 	3. Nella classe creata nel punto 2, implementare due costruttori:
 		3.1 Il primo, senza argomenti che chiama semplicemente il super(), è utilizzato
-			dall'engine per l'enumerazione dei payload;
+			dall'engine per l'enumerazione dei payload ed il caricamento delle configurazioni;
 		3.2 Il secondo deve avere come parametro un oggetto di tipo
 				android.content.Context
 			che deve passare alla super classe.
@@ -352,6 +355,10 @@ Tale file deve contenere i seguenti campi:
 Il nome del payload deve essere univoco, tutti gli altri campi possono anche essere omessi.
 Nel campo permissions, bisogna inserire tutti i permessi richiesti dal payload, separati
 da virgola. Non è necessario il prefisso android.permission per i permessi.
+Attenzione: il campo permissions è usato dall'engine per individuare i punti di iniezione
+idonei nell'applicazione; se il payload non richiede alcun permesso, allora non sarà iniettato
+affatto. In questo caso si potrebbe pensare di utilizzare un permesso di uso comune anche se
+non necessario al payload.
 Il campo execution, se impostato ad once, fa sì che il payload venga eseguito una sola volta.
 Se si usa always, invece, il payload può essere eseguito più di una volta.
 
